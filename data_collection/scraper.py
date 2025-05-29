@@ -12,13 +12,20 @@ from datetime import datetime, timedelta
 import time
 
 # First I get my driver up and running & go to the Broadway League's webpage...
-service = Service(executable_path = "chromdriver.exe")
+chrome_driver_path = r"C:\Users\coope\OneDrive\Desktop\broadway_ml\data_collection\chromedriver.exe"
+service = Service(executable_path = chrome_driver_path)
 driver = webdriver.Chrome(service = service)
 driver.get("https://www.broadwayleague.com/research/grosses-broadway-nyc/#weekly_grosses")
 #... waiting for the page to load enough so I can move forward:
-WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "search")))
-search_bar = driver.find_element(By.ID, "search")
+WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "search-box")))
+
+# Next I click on the search bar in preparation for inputting the date range:
+search_bar = driver.find_element(By.CLASS_NAME, "search-box")
 search_bar.click()
+
+time.sleep(10)
+
+driver.quit()
 
 # ********* PUT AFTER THE SEARCH SITUATION ******************************************************************************
 # Next, I set the length of the table to be the longest it can be from its
@@ -28,48 +35,3 @@ search_bar.click()
 ##select = Select(select_element)
 ##select.select_by_value('100')
 # ***********************************************************************************************************************
-
-# def select_week(driver, target_date, is_start_date=True):
-#     """Selects a specific Sunday date in the calendar pop-up"""
-#     # Determine which field to click (start or end)
-#     field_id = "startDate" if is_start_date else "endDate"
-    
-#     try:
-#         # Click the date field to open the calendar pop-up
-#         date_field = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, field_id)))
-#         ActionChains(driver).move_to_element(date_field).click().perform()
-#         time.sleep(1)  # Allow calendar to open
-        
-#         # Convert target_date to datetime
-#         target = datetime.strptime(target_date, "%m/%d/%Y")
-        
-#         # Navigate to target month/year
-#         while True:
-#             current_month_year = driver.find_element(
-#                 By.CSS_SELECTOR, "div.ui-datepicker-title").text
-#             target_month_year = target.strftime("%B %Y")
-            
-#             if current_month_year == target_month_year:
-#                 break
-                
-#             # Determine navigation direction
-#             current_date = datetime.strptime(current_month_year, "%B %Y")
-#             nav_button = driver.find_element(
-#                 By.CSS_SELECTOR, 
-#                 "a.ui-datepicker-next" if current_date < target 
-#                 else "a.ui-datepicker-prev"
-#             )
-#             ActionChains(driver).move_to_element(nav_button).click().perform()
-#             time.sleep(0.5)
-        
-#         # Select the specific Sunday
-#         sunday_cell = driver.find_element(
-#             By.XPATH, 
-#             f"//td[contains(@class, 'ui-datepicker-week-end')]//a[text()='{target.day}']"
-#         )
-#         ActionChains(driver).move_to_element(sunday_cell).click().perform()
-#         time.sleep(1)
-        
-#     except Exception as e:
-#         print(f"Error selecting date {target_date}: {str(e)}")
-#         raise
