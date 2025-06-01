@@ -20,8 +20,8 @@ import time
 # Sunday of 1979, and the last Sunday of 1979, respectively:
 dates = [("1/7/1979", "12/30/1979")]
 
-# Then I add the remaining sundays from 1980 to present as tuples to be entered as strings
-# using a function to find all of the sundays.
+# Then I add the remaining sundays from 1980 (starting from the first to contain data) 
+# to present as tuples to be entered as strings using a function to find all of the sundays.
 def all_sundays_between(start_date, end_date):
     sundays = []
     current_date = start_date
@@ -31,7 +31,7 @@ def all_sundays_between(start_date, end_date):
         current_date += timedelta(days=1)
     return sundays
 
-for sunday in all_sundays_between(date(1980, 1, 6), date.today()):
+for sunday in all_sundays_between(date(1980, 6, 8), date.today()):
     sun_string = sunday.strftime("%m/%d/%Y")
     dates.append((sun_string, sun_string))
 
@@ -84,17 +84,40 @@ for week in dates:
     search_button = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector)))
     search_button.click()
 
-    # Step 5)
-    try: # in case the table doesn't show up at all, 
-        select_element = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "DataTables_Table_0_length")))
+    try: # in case the table doesn't show up at all,
+        # Step 5) - had issues with loading times, so I manually...
+        # ...wait for table to finish reloading after search;
+        WebDriverWait(driver, 5).until(
+            EC.invisibility_of_element_located((By.CSS_SELECTOR, "#DataTables_Table_0_processing"))
+        )
+        
+        # re-locate the length selector after table refresh;
+        time.sleep(0.25)
+        select_element = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.NAME, "DataTables_Table_0_length"))
+            )
+        
+        # create a new Select instance with fresh element reference;
+        time.sleep(0.25)
         select = Select(select_element)
         select.select_by_value('100')
+        
+        # and finally Wait for table to finish reloading after length change;
+        WebDriverWait(driver, 5).until(
+            EC.invisibility_of_element_located((By.CSS_SELECTOR, "#DataTables_Table_0_processing"))
+        )
+    except:
+        print("Issue Selecting Table Length / no table?")
 
+    try:
         # Step 6)
         table_body = WebDriverWait(driver, 5).until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, "table#DataTables_Table_0 > tbody"))
             )
+    except:
+        print("Issue Accessing table body / no table?")
         
+    try:
         # Step 7)
         rows = table_body.find_elements(By.TAG_NAME, "tr")
         for row in rows:
