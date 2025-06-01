@@ -8,7 +8,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
-from selenium.common.exceptions import NoSuchElementException
 from datetime import date, timedelta
 import time
 
@@ -80,13 +79,8 @@ for week in dates:
 
     # Step 4)
     button_selector = "input.subit[type='submit'][value*='Search NYC'][value*='Grosses']"
-    search_buttons = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector)))
-    for button in search_buttons:
-        if button.is_displayed():
-            button.click()
-            break
-        else:
-            raise NoSuchElementException("No visible submit button found")
+    search_button = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector)))
+    search_button.click()
 
     # Step 5)
     try: # in case the table doesn't show up at all, 
