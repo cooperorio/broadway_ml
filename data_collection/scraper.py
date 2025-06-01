@@ -63,7 +63,7 @@ full_bw_table = pd.DataFrame(columns=headers)
 
 for week in dates:
     # To keep track of which query we are on:
-    print(f"Query Number: {dates.index(week)}")
+    print(f"Query Number: {dates.index(week)} / {len(dates)}")
     
     # Step 1)
     WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "search-box")))
@@ -104,9 +104,8 @@ for week in dates:
             full_bw_table.loc[len(full_bw_table)] = [cell.text for cell in cells]
 
         print(f"Added {len(full_bw_table)} rows")
-        print(full_bw_table.head())
     except:
-        print(f"No data for week {week[0]}")
+        print(f"Issues with week {week[0]}")
         continue
 
 time.sleep(5)
@@ -115,4 +114,5 @@ try:
 except:
   print("Driver Quit Issue")
 
+print(full_bw_table.head())
 full_bw_table.to_csv("broadway_league_data.csv")
