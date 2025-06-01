@@ -74,7 +74,9 @@ for week in dates:
     end_box = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "end_week_date")))
 
     # Step 3)
+    start_box.clear()
     start_box.send_keys(week[0])
+    end_box.clear()
     end_box.send_keys(week[1])
 
     # Step 4)
