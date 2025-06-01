@@ -70,8 +70,8 @@ for week in dates:
     search_bar.click()
 
     # Step 2)
-    start_box = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "start_week_date")))
-    end_box = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "end_week_date")))
+    start_box = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.NAME, "start_week_date")))
+    end_box = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.NAME, "end_week_date")))
 
     # Step 3)
     start_box.clear()
