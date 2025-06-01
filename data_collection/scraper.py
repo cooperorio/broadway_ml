@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
+from selenium.common.exceptions import NoSuchElementException
 from datetime import date, timedelta
 import time
 
@@ -66,29 +67,30 @@ for week in dates:
     print(f"Query Number: {dates.index(week)} / {len(dates)}")
     
     # Step 1)
-    WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "search-box")))
-    search_bar = driver.find_element(By.CLASS_NAME, "search-box")
+    search_bar = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "search-box")))
     search_bar.click()
 
     # Step 2)
-    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "start_week_date")))
-    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "end_week_date")))
+    start_box = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "start_week_date")))
+    end_box = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "end_week_date")))
 
     # Step 3)
-    start_box = driver.find_element(By.NAME, "start_week_date")
-    end_box = driver.find_element(By.NAME, "end_week_date")
     start_box.send_keys(week[0])
     end_box.send_keys(week[1])
 
     # Step 4)
-    button_selector = "input.subit[type='submit'][value='Search NYC Grosses']"
-    WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector)))
-    # ***Still need to make sure the above for the button works...***
+    button_selector = "input.subit[type='submit'][value*='Search NYC'][value*='Grosses']"
+    search_buttons = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector)))
+    for button in search_buttons:
+        if button.is_displayed():
+            button.click()
+            break
+        else:
+            raise NoSuchElementException("No visible submit button found")
 
     # Step 5)
     try: # in case the table doesn't show up at all, 
-        WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "DataTables_Table_0_length")))
-        select_element = driver.find_element(By.NAME, "DataTables_Table_0_length")
+        select_element = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "DataTables_Table_0_length")))
         select = Select(select_element)
         select.select_by_value('100')
 
