@@ -1,15 +1,14 @@
 # Written by Cooper Orio for Broadway Data Project
 
 # My Selenium imports, most of which will be used I think(?)
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 import time
 
 # Before doing any work with the driver I will use to scrub the website, I first
@@ -44,16 +43,28 @@ service = Service(executable_path = chrome_driver_path)
 driver = webdriver.Chrome(service = service)
 driver.get("https://www.broadwayleague.com/research/grosses-broadway-nyc/#weekly_grosses")
 
-# Once I make it to the webpage successfully, I loop the following steps 
-# for each date pair I have in my constructed dates list:
+# Next, before I touch the data in the tables at all, I first get the headers to
+# initialize a pandas dataframe in which to store the data as I encounter it.
+table_head = WebDriverWait(driver, 5).until(EC.presence_of_element_located(
+        (By.CSS_SELECTOR, "table#DataTables_Table_0 > thead"))
+        )
+headers = [th.text for th in table_head.find_elements(By.TAG_NAME, "th")]
+full_bw_table = pd.DataFrame(columns=headers)
+
+# Once I make it to the webpage successfully, and initialize my table's headers, I loop the 
+# following steps for each date pair I have in my constructed dates list:
 # 1) Wait for the page to load enough such that the search box is accessable, and click on it.
 # 2) Wait for the start & end date textboxes to be accessable on the page
 # 3) Enter the current tuple's start date in the start box, and its end date in the end box.
 # 4) Wait for the search button to be clickable, and Click the Search Button
-# 5) Wait for the table with data to be present, and set the length of visible table to be 100
-# 6) Add the data inside row by row to dataframe (or other storage system?)
+# 5) Wait for the table length selector to be accessable & Set the length of visible table to be 100
+# 6) Wait for the table body to be accessable, and make it a variable using the driver
+# 7) Add the data inside row by row to my dataframe (or other storage system later?)
 
 for week in dates:
+    # To keep track of which query we are on:
+    print(f"Query Number: {dates.index(week)}")
+    
     # Step 1)
     WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "search-box")))
     search_bar = driver.find_element(By.CLASS_NAME, "search-box")
@@ -75,13 +86,33 @@ for week in dates:
     # ***Still need to make sure the above for the button works...***
 
     # Step 5)
-    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "DataTables_Table_0_length")))
-    select_element = driver.find_element(By.NAME, "DataTables_Table_0_length")
-    select = Select(select_element)
-    select.select_by_value('100')
+    try: # in case the table doesn't show up at all, 
+        WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "DataTables_Table_0_length")))
+        select_element = driver.find_element(By.NAME, "DataTables_Table_0_length")
+        select = Select(select_element)
+        select.select_by_value('100')
 
-    # Step 6) **********************
+        # Step 6)
+        table_body = WebDriverWait(driver, 5).until(EC.presence_of_element_located(
+            (By.CSS_SELECTOR, "table#DataTables_Table_0 > tbody"))
+            )
+        
+        # Step 7)
+        rows = table_body.find_elements(By.TAG_NAME, "tr")
+        for row in rows:
+            cells = row.find_elements(By.TAG_NAME, "td")
+            full_bw_table.loc[len(full_bw_table)] = [cell.text for cell in cells]
 
-time.sleep(10)
+        print(f"Added {len(full_bw_table)} rows")
+        print(full_bw_table.head())
+    except:
+        print(f"No data for week {week[0]}")
+        continue
 
-driver.quit()
+time.sleep(5)
+try:
+  driver.quit()
+except:
+  print("Driver Quit Issue")
+
+full_bw_table.to_csv("broadway_league_data.csv")
