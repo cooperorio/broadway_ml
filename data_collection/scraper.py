@@ -92,13 +92,13 @@ for week in dates:
         )
         
         # re-locate the length selector after table refresh;
-        time.sleep(0.25)
+        time.sleep(0.20)
         select_element = WebDriverWait(driver, 5).until(
             EC.element_to_be_clickable((By.NAME, "DataTables_Table_0_length"))
             )
         
         # create a new Select instance with fresh element reference;
-        time.sleep(0.25)
+        time.sleep(0.20)
         select = Select(select_element)
         select.select_by_value('100')
         
