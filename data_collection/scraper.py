@@ -10,18 +10,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from datetime import date, timedelta
 import time
+import os
+import sys
+from BWL_reformat_function import BWL_reformat
 
-# Before doing any work with the driver I will use to scrub the website, I first
+# Before doing any real work with the driver I will use to scrub the website, I first
 # make a list of start_date-end_date pairs to be entered into the search bar when
-# we are able to query the page.
+# we are able to query the page. If the csv already exists, rather than starting
+# from the beginning, it checks for the most recent date, and sets that as the start
+# date fror the remainder of the scraping.
 
-# Note, since the first year of the page's data is fairly sparse, beginning in the 
-# middle of the year 1979, I set the very first start and end dates to be the first 
-# Sunday of 1979, and the last Sunday of 1979, respectively:
-dates = [("1/7/1979", "12/30/1979")]
-
-# Then I add the remaining sundays from 1980 (starting from the first to contain data) 
-# to present as tuples to be entered as strings using a function to find all of the sundays.
+# first a function to generate Sundays to iterate over:
 def all_sundays_between(start_date, end_date):
     sundays = []
     current_date = start_date
@@ -31,12 +30,31 @@ def all_sundays_between(start_date, end_date):
         current_date += timedelta(days=1)
     return sundays
 
-for sunday in all_sundays_between(date(1980, 6, 8), date.today()):
-    sun_string = sunday.strftime("%m/%d/%Y")
-    dates.append((sun_string, sun_string))
+file_path = r"C:\Users\coope\OneDrive\Desktop\broadway_ml\database\broadway_league_data.csv"
 
+if os.path.exists(file_path): # starting with partially scrubbed data
+    old_data = pd.read_csv(file_path)
+    dates = []
+    former_date = pd.to_datetime(old_data['Week End']).max().date()
+    initial_date = former_date + timedelta(days=7)
+else: # starting from scratch:
+    # Note, since the first year of the page's data is fairly sparse, beginning in the 
+    # middle of the year 1979, I set the very first start and end dates to be the first 
+    # Sunday of 1979, and the last Sunday of 1979, respectively:
+    dates = [("1/7/1979", "12/30/1979")]
+    initial_date = date(1980, 6, 8)
 
-# Now, onto working with the actual driver:
+# Then I add the remaining sundays from my added starting date (starting from the first to contain 
+# data in 1980 for the 'from scratch' version) to present as tuples to be entered as strings using 
+# a function to find all of the sundays.
+if initial_date > date.today():
+    sys.exit("Your CSV is up to date - the most recent week in your csv is the most recent week on BWL")
+else:
+    for sunday in all_sundays_between(initial_date, date.today()):
+        sun_string = sunday.strftime("%m/%d/%Y")
+        dates.append((sun_string, sun_string))
+
+# Now onto working with the driver itself:
 # First I get my driver up and running & go to the Broadway League's webpage...
 chrome_driver_path = r"C:\Users\coope\OneDrive\Desktop\broadway_ml\data_collection\chromedriver.exe"
 service = Service(executable_path = chrome_driver_path)
@@ -136,4 +154,11 @@ except:
   print("Driver Quit Issue")
 
 print(full_bw_table.head())
-full_bw_table.to_csv("broadway_league_data.csv")
+
+if os.path.exists(file_path): # starting with partially scrubbed data
+    new_data = BWL_reformat(full_bw_table)
+    total_data = pd.concat([old_data, new_data], ignore_index=True, axis=0)
+    total_data.to_csv(file_path, mode='w', index=False)
+else: # starting from scratch:
+    final_data = BWL_reformat(full_bw_table)
+    final_data.to_csv(file_path)
