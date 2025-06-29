@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import date
 
 def BWL_reformat(bway_df):
     '''Informed by First Scrub Exploration, this function
@@ -31,7 +32,7 @@ def BWL_reformat(bway_df):
     # Finally, I make sure that all of my values are in analyzable formats, with
     # the numerical values as floats (for the sake of consistency), the titles, 
     # theatres, and show types as strings, and the Week Ends as dates.
-    bway_df['Week End'] = pd.to_datetime(bway_df['Week End'])
+    bway_df['Week End'] = pd.to_datetime(bway_df['Week End']).dt.date
 
     bway_df['Grosses ($)'] = bway_df['Grosses ($)'].str.replace('$', '').str.replace(',', '').astype(float)
     bway_df['LW Grosses ($)'] = bway_df['LW Grosses ($)'].str.replace('$', '').str.replace(',', '').astype(float)
