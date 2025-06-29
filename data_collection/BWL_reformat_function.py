@@ -15,8 +15,10 @@ def BWL_reformat(bway_df):
     # using 'LW' to denote 'last week'. Furthermore, sinceI will be 
     # removing the $ from the data, I rename the raw Grosses, too.
     bway_df = bway_df.rename(columns={'Grosses\nPrev Week': 'LW Grosses ($)',
+                                      'Grosses\r\nPrev Week': 'LW Grosses ($)',
                                       'Grosses Prev Week': 'LW Grosses ($)', 
                                       'Attend\nPrev Week': 'LW Attend',
+                                      'Attend\r\nPrev Week': 'LW Attend',
                                       'Attend Prev Week': 'LW Attend',
                                       'Grosses': 'Grosses ($)'})
     
