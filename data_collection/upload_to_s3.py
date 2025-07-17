@@ -8,7 +8,7 @@ def upload_to_s3(bucket_name, file_path, s3_folder="raw"):
     try:
         # Explicitly use the 'default' profile from AWS CLI config
         # session = boto3.Session(profile_name='default') #redundant since shared credentials
-        s3 = session.client('s3')
+        s3 = boto3.client('s3')
         
         file_name = os.path.basename(file_path)
         timestamp = datetime.now().strftime("%Y%m%d")
