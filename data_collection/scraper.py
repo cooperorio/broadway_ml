@@ -1,6 +1,6 @@
 # Written by Cooper Orio for Broadway Data Project
 
-# My Selenium imports, most of which will be used I think(?)
+# My Selenium imports, most of which will be used
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -77,10 +77,10 @@ full_bw_table = pd.DataFrame(columns=headers)
 # 4) Wait for the search button to be clickable, and Click the Search Button
 # 5) Wait for the table length selector to be accessable & Set the length of visible table to be 100
 # 6) Wait for the table body to be accessable, and make it a variable using the driver
-# 7) Add the data inside row by row to my dataframe (or other storage system later?)
+# 7) Add the data inside row by row to my working dataframe 
 
 for week in dates:
-    # To keep track of which query we are on:
+    # To keep track of which query we are on while running:
     print(f"Query Number: {dates.index(week)} / {len(dates)}")
     
     # Step 1)
@@ -147,14 +147,16 @@ for week in dates:
         print(f"Issues with week {week[0]}")
         continue
 
+# Then I close the driver and print the tail of the dataframe for inspection
 time.sleep(5)
 try:
   driver.quit()
 except:
   print("Driver Quit Issue")
 
-print(full_bw_table.head())
+print(full_bw_table.tail())
 
+# Finally I export the dataframe as a csv depending on the start state.
 if os.path.exists(file_path): # starting with partially scrubbed data
     new_data = BWL_reformat(full_bw_table)
     total_data = pd.concat([old_data, new_data], ignore_index=True, axis=0)
