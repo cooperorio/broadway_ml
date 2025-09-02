@@ -3,18 +3,18 @@ from datetime import date
 
 def BWL_reformat(bway_df):
     '''Informed by First Scrub Exploration, this function
-    reformats the pandas dataframe containing Broadway League
-    Data into a form that is more useable for analytics and
-    Model building. input: pandas df; output: pandas df'''
+    reformats the pandas dataframe containing raw Broadway
+    League Data into a form that is more useable for analytics
+    and Model building. input: pandas df; output: pandas df'''
 
     # First, I remove the potential leading column that was present
-    # when read from the format of a saved pandas CSV:
+    # when re-read from the format of a saved pandas CSV:
     if 'Unnamed: 0' in bway_df.columns:
         bway_df = bway_df.drop('Unnamed: 0', axis=1)
 
     # Next, I rename the previous week columns in a format-robust manner, 
-    # using 'LW' to denote 'last week'. Furthermore, sinceI will be 
-    # removing the $ from the data, I rename the raw Grosses, too.
+    # using 'LW' to denote 'last week'. Furthermore, since I will be 
+    # removing the '$' symbol from the data, I rename the raw Grosses, too.
     bway_df = bway_df.rename(columns={'Grosses\nPrev Week': 'LW Grosses ($)',
                                       'Grosses\r\nPrev Week': 'LW Grosses ($)',
                                       'Grosses Prev Week': 'LW Grosses ($)', 
