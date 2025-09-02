@@ -28,6 +28,7 @@ def BWL_reformat(bway_df):
     bway_df['LW Grosses ($)'] = bway_df['LW Grosses ($)'].replace('$', '0', regex=False)
     bway_df['Attend'] = bway_df['Attend'].fillna('0')
     bway_df['LW Attend'] = bway_df['LW Attend'].fillna('0')
+    bway_df['LW Attend'] = bway_df['LW Attend'].replace('', '0')
 
     # Finally, I make sure that all of my values are in analyzable formats, with
     # the numerical values as floats (for the sake of consistency), the titles, 
