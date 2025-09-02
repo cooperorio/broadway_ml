@@ -7,7 +7,7 @@ from data_collection.upload_to_s3 import upload_to_s3
 # Configuration
 CSV_PATH = r"C:\Users\coope\OneDrive\Desktop\broadway_ml\database\broadway_league_data.csv"
 BUCKET_NAME = "broadway-data-raw"  # Change to your bucket name
-SCRAPER_PATH = "data_collection/scraper.py"
+SCRAPER_PATH = r"C:\Users\coope\OneDrive\Desktop\broadway_ml\data_collection\scraper.py"
 
 def run_scraper():
     """Execute the scraper script"""
