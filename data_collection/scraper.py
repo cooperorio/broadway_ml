@@ -156,7 +156,7 @@ except:
 
 print(full_bw_table.tail())
 
-# Finally I export the dataframe as a csv depending on the start state.
+# Finally I reformat & export the dataframe as a csv depending on the start state.
 if os.path.exists(file_path): # starting with partially scrubbed data
     new_data = BWL_reformat(full_bw_table)
     total_data = pd.concat([old_data, new_data], ignore_index=True, axis=0)
