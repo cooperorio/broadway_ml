@@ -105,12 +105,16 @@ def main():
     # Sidebar filters
     st.sidebar.header("Filters")
     
-    # Date range filter
+        # Date range filter
     if 'Week End' in df_filtered.columns:
+        # Convert to datetime if it's not already
+        if not pd.api.types.is_datetime64_any_dtype(df_filtered['Week End']):
+            df_filtered['Week End'] = pd.to_datetime(df_filtered['Week End'])
+        
         min_date = df_filtered['Week End'].min()
         max_date = df_filtered['Week End'].max()
         
-        # Convert to datetime.date objects for the date_input widget
+        # Convert to date objects for the date_input widget
         min_date_date = min_date.date()
         max_date_date = max_date.date()
         
