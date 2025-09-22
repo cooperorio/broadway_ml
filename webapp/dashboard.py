@@ -17,6 +17,7 @@ sys.path.append(str(parent_dir))
 # Try to import analysis functions
 try:
     from analysis.test_functions import calculate_basic_metrics
+    from analysis.test_functions import top_grossing_plot
     analysis_available = True
 except ImportError as e:
     st.warning(f"Analysis module not available: {e}")
@@ -64,17 +65,16 @@ def load_s3_data(bucket_name, key):
         st.error(f"Error loading data from S3: {e}")
         return None
     
-# Function to apply analysis from your analysis module
 def apply_analysis(df):
     if not analysis_available:
         st.warning("Analysis functions are not available. Using default analysis.")
-        # Add some default analysis here **********************************************
-        if 'Grosses ($)' in df.columns:
+        # Add some default analysis here
+        if 'Grosses ($)' in df.columns and 'Attend' in df.columns:
             df['Gross_Per_Attendee'] = df['Grosses ($)'] / df['Attend']
-        return df
-        
+        return df, {}  # Return empty results dict
+    
     try:
-        # Use your analysis functions here ************************************************
+        # Use your analysis functions here
         df, results = calculate_basic_metrics(df)
         st.success("Analysis functions applied successfully!")
         return df, results
@@ -95,17 +95,21 @@ def main():
         st.error("Failed to load data. Please check your credentials and try again.")
         return
     
-    # Apply analysis functions
+    # Apply analysis functions - cursory stuff to prep the data & get basic info
     with st.spinner("Applying analysis..."):
         df, analysis_results = apply_analysis(df)
     
+    ############################
+    # Front page sidebar stuff #
+    ############################
+
     # Create a copy for filtering
     df_filtered = df.copy()
     
     # Sidebar filters
     st.sidebar.header("Filters")
     
-        # Date range filter
+    # Date range filter
     if 'Week End' in df_filtered.columns:
         # Convert to datetime if it's not already
         if not pd.api.types.is_datetime64_any_dtype(df_filtered['Week End']):
@@ -200,12 +204,16 @@ def main():
                       title='Weekly Grosses Over Time', color='Show' if 'Show' in df_filtered.columns else None)
         st.plotly_chart(fig1, use_container_width=True)
     
-    # Attendance vs Capacity
-    if 'Attend' in df_filtered.columns and '% Cap' in df_filtered.columns:
-        fig2 = px.scatter(df_filtered, x='Attend', y='% Cap', 
-                         color='Show' if 'Show' in df_filtered.columns else None,
-                         title='Attendance vs Capacity')
-        st.plotly_chart(fig2, use_container_width=True)
+    #################################################################################
+    # Here is where I add my visualizations adopted from my old class group project #
+    #################################################################################
+
+    # Top grossing plot (second - where you want it)
+    try:
+        fig_top_gross = top_grossing_plot(df_filtered)  # Use filtered data
+        st.plotly_chart(fig_top_gross, use_container_width=True)
+    except Exception as e:
+        st.error(f"Error creating top grossing plot: {e}")
     
     # Show filtered data
     st.subheader("Filtered Data")
