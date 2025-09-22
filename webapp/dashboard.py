@@ -114,7 +114,7 @@ def main():
         st.plotly_chart(fig, use_container_width=True)
         
         # Simple performance summary
-        st.subheader("📊 Show Performance Summary")
+        st.subheader("Show Performance Summary")
         
         show_stats = df_filtered.groupby('Show').agg({
             'Grosses ($)': ['sum', 'mean', 'max'],
@@ -166,12 +166,12 @@ def main():
     #                 st.write("")
     
     # Recent Data Preview
-    st.subheader("🔍 Recent Data Preview")
+    st.subheader("Recent Data Preview")
     
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        #41 because there are 41 Broadway showhouses
+        # 41 because there are 41 Broadway showhouses
         st.dataframe(df_filtered.tail(41), use_container_width=True)
     
     with col2:
