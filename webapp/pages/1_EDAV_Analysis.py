@@ -1,7 +1,7 @@
 # pages/1_EDAV_Analysis.py
 import streamlit as st
 import pandas as pd
-from analysis.test_functions import create_top_grossing_plot
+from analysis.test_functions import top_grossing_plot
 
 st.set_page_config(
     page_title="EDAV Broadway Analysis",
