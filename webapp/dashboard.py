@@ -9,116 +9,29 @@ from dotenv import load_dotenv
 from pathlib import Path
 import sys
 import numpy as np
+from utils.shared import get_data
 
-# Add the parent directory to the path to import from analysis
-parent_dir = Path(__file__).parent.parent
-sys.path.append(str(parent_dir))
-
-# Try to import analysis functions
-try:
-    from analysis.test_functions import calculate_basic_metrics
-    from analysis.test_functions import top_grossing_plot
-    analysis_available = True
-except ImportError as e:
-    st.warning(f"Analysis module not available: {e}")
-    analysis_available = False
-
-
-# Set page configuration first
+# That's almost all that we need now that we offloaded most
+# of the other functions to our utils file (data loading, at least)
 st.set_page_config(
-    page_title="Exploring Broadway Data",
+    page_title="Broadway Data Dashboard",
     page_icon="🎭",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# Load environment variables - now using the correct path
-env_path = parent_dir / '.env'
-load_dotenv(dotenv_path=env_path)
-
-# Initialize S3 client
-@st.cache_resource
-def init_s3_client():
-    try:
-        session = boto3.Session(
-            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-            region_name=os.getenv('AWS_DEFAULT_REGION', 'us-east-1')
-        )
-        return session.client('s3')
-    except Exception as e:
-        st.error(f"Error initializing S3 client: {e}")
-        return None
-    
-# Load data from S3
-@st.cache_data(ttl=3600)  # Cache for 1 hour
-def load_s3_data(bucket_name, key):
-    try:
-        s3 = init_s3_client()
-        if s3 is None:
-            return None
-            
-        obj = s3.get_object(Bucket=bucket_name, Key=key)
-        df = pd.read_csv(obj['Body'])
-        return df
-    except Exception as e:
-        st.error(f"Error loading data from S3: {e}")
-        return None
-    
-def apply_analysis(df):
-    if not analysis_available:
-        st.warning("Analysis functions are not available. Using default analysis.")
-        # Add some default analysis here
-        if 'Grosses ($)' in df.columns and 'Attend' in df.columns:
-            df['Gross_Per_Attendee'] = df['Grosses ($)'] / df['Attend']
-        return df, {}  # Return empty results dict
-    
-    try:
-        # Use your analysis functions here
-        df, results = calculate_basic_metrics(df)
-        st.success("Analysis functions applied successfully!")
-        return df, results
-    except Exception as e:
-        st.error(f"Error applying analysis: {e}")
-        return df, {}
-
-
-def main():
-    st.title("🎭 Broadway League Data Analysis Dashboard")
-    
-    # Load data
-    with st.spinner("Loading data..."):
-        # Replace 'your-bucket-name' with your actual bucket name
-        df = load_s3_data('broadway-data-raw', 'raw/latest/broadway_league_data.csv')
-    
-    if df is None:
-        st.error("Failed to load data. Please check your credentials and try again.")
-        return
-    
-    # Apply analysis functions - cursory stuff to prep the data & get basic info
-    with st.spinner("Applying analysis..."):
-        df, analysis_results = apply_analysis(df)
-    
-    ############################
-    # Front page sidebar stuff #
-    ############################
-
-    # Create a copy for filtering
+# Just a function to make our filtered dataframe based 
+# on sidebar inputs for this dashboard page in particular.
+def apply_filters(df):
+    """Apply sidebar filters to the data"""
     df_filtered = df.copy()
     
-    # Sidebar filters
     st.sidebar.header("Filters")
     
     # Date range filter
     if 'Week End' in df_filtered.columns:
-        # Convert to datetime if it's not already
-        if not pd.api.types.is_datetime64_any_dtype(df_filtered['Week End']):
-            df_filtered['Week End'] = pd.to_datetime(df_filtered['Week End'])
-        
         min_date = df_filtered['Week End'].min()
         max_date = df_filtered['Week End'].max()
         
-        # Convert to date objects for the date_input widget
         min_date_date = min_date.date()
         max_date_date = max_date.date()
         
@@ -140,93 +53,143 @@ def main():
         shows = st.sidebar.multiselect(
             "Select Shows",
             options=df_filtered['Show'].unique(),
-            default=df_filtered['Show'].unique()[:5]  # Default to first 5 shows
+            # Default to my guess at the most popular shows
+            default=['HAMILTON', 'WICKED', 'THE PHANTOM OF THE OPERA', 
+                     'THE LION KING', 'HADESTOWN']  
         )
         df_filtered = df_filtered[df_filtered['Show'].isin(shows)]
     
-    # Capacity filter (if available)
-    if '% Cap' in df_filtered.columns:
-        min_cap, max_cap = st.sidebar.slider(
-            "Capacity Range (%)",
-            float(df_filtered['% Cap'].min()),
-            float(df_filtered['% Cap'].max()),
-            (float(df_filtered['% Cap'].min()), float(df_filtered['% Cap'].max()))
-        )
-        df_filtered = df_filtered[(df_filtered['% Cap'] >= min_cap) & 
-                                 (df_filtered['% Cap'] <= max_cap)]
+    return df_filtered
+
+
+def main():
+    st.title("🎭 Broadway Data Dashboard")
+    st.markdown("Welcome to the Broadway data analysis dashboard! Take a look around and explore historical Broadway performance data with interactive visualizations.")
     
-    # Main dashboard metrics
+    # Load data
+    df = get_data()
+    if df is None:
+        st.error("Failed to load data. Please check your credentials and try again.")
+        return
+    
+    # Apply filters
+    df_filtered = apply_filters(df)
+    
+    # Key metrics at the top
+    st.subheader("Key Performance Indicators")
+    
     col1, col2, col3, col4 = st.columns(4)
-    
     with col1:
-        st.metric("Total Shows", len(df_filtered['Show'].unique()))
+        total_shows = len(df_filtered['Show'].unique())
+        st.metric("Total Shows", total_shows)
     
     with col2:
         if 'Grosses ($)' in df_filtered.columns:
-            st.metric("Total Grosses", f"${df_filtered['Grosses ($)'].sum():,.2f}")
+            total_gross = df_filtered['Grosses ($)'].sum()
+            st.metric("Total Gross", f"${total_gross:,.0f}")
     
     with col3:
         if 'Attend' in df_filtered.columns:
-            st.metric("Average Attendance", f"{df_filtered['Attend'].mean():.0f}")
+            avg_attendance = df_filtered['Attend'].mean()
+            st.metric("Average Attendance", f"{avg_attendance:,.0f}")
     
     with col4:
-        if '% Cap' in df_filtered.columns:
-            st.metric("Average Capacity", f"{df_filtered['% Cap'].mean():.1f}%")
+        if 'Capacity' in df_filtered.columns:
+            avg_capacity = df_filtered['Capacity'].mean()
+            st.metric("Average Capacity", f"{avg_capacity:.1f}%")
+    
 
-    # Analysis Section
-    st.subheader("Analysis Results")
-    
-    if analysis_results:
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            if 'total_gross' in analysis_results:
-                st.metric("Total Gross", f"${analysis_results['total_gross']:,.2f}")
-        
-        with col2:
-            if 'total_attendance' in analysis_results:
-                st.metric("Total Attendance", f"{analysis_results['total_attendance']:,.0f}")
-        
-        with col3:
-            if 'avg_capacity' in analysis_results:
-                st.metric("Avg Capacity", f"{analysis_results['avg_capacity']:.1f}%")
-        
-        with col4:
-            if 'prediction_accuracy' in analysis_results:
-                st.metric("Prediction Accuracy", f"{analysis_results['prediction_accuracy']:.2%}")
+    st.subheader("Individual Show Grosses Over Time")
 
-    # Visualizations
-    st.subheader("Data Visualizations")
+    if 'Grosses ($)' in df_filtered.columns and 'Week End' in df_filtered.columns and 'Show' in df_filtered.columns:
+        # Create the line chart with each show as a separate line
+        fig = px.line(df_filtered, x='Week End', y='Grosses ($)', 
+                    color='Show',
+                    title='Weekly Grosses by Show Over Time',
+                    labels={'Grosses ($)': 'Weekly Gross ($)', 'Week End': 'Date'})
+        
+        # Simple layout customization
+        fig.update_layout(height=500)
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Simple performance summary
+        st.subheader("📊 Show Performance Summary")
+        
+        show_stats = df_filtered.groupby('Show').agg({
+            'Grosses ($)': ['sum', 'mean', 'max'],
+            'Attend': 'mean'
+        }).round(2)
+        
+        # Flatten the column names
+        show_stats.columns = ['Total_Gross', 'Avg_Weekly_Gross', 'Peak_Weekly_Gross', 'Avg_Attendance']
+        show_stats = show_stats.sort_values('Total_Gross', ascending=False)
+        
+        # Display the summary table
+        st.dataframe(show_stats.style.format({
+            'Total_Gross': '${:,.0f}',
+            'Avg_Weekly_Gross': '${:,.0f}',
+            'Peak_Weekly_Gross': '${:,.0f}',
+            'Avg_Attendance': '{:,.0f}'
+        }))
     
-    # Weekly Grosses Over Time
-    if 'Grosses ($)' in df_filtered.columns and 'Week End' in df_filtered.columns:
-        fig1 = px.line(df_filtered, x='Week End', y='Grosses ($)', 
-                      title='Weekly Grosses Over Time', color='Show' if 'Show' in df_filtered.columns else None)
-        st.plotly_chart(fig1, use_container_width=True)
+    ###### Maybe I will try to incorporate this here later, ######
+    ###### but for now it just feels a little cluttered...  ######
+    # # Top Shows This Period
+    # st.subheader("Top Performing Shows (Selected Period)")
     
-    #################################################################################
-    # Here is where I add my visualizations adopted from my old class group project #
-    #################################################################################
-
-    # Top grossing plot (second - where you want it)
-    try:
-        fig_top_gross = top_grossing_plot(df_filtered)  # Use filtered data
-        st.plotly_chart(fig_top_gross, use_container_width=True)
-    except Exception as e:
-        st.error(f"Error creating top grossing plot: {e}")
+    # if 'Show' in df_filtered.columns and 'Grosses ($)' in df_filtered.columns:
+    #     top_shows = df_filtered.groupby('Show').agg({
+    #         'Grosses ($)': 'sum',
+    #         'Attend': 'sum',
+    #         'Theatre': 'first'
+    #     }).nlargest(10, 'Grosses ($)').reset_index()
+        
+    #     col1, col2 = st.columns([2, 1])
+        
+    #     with col1:
+    #         # Bar chart of top shows
+    #         fig_bar = px.bar(top_shows, x='Grosses ($)', y='Show', 
+    #                        title='Top 10 Shows by Gross Revenue',
+    #                        color='Grosses ($)',
+    #                        color_continuous_scale='viridis')
+    #         fig_bar.update_layout(height=400)
+    #         st.plotly_chart(fig_bar, use_container_width=True)
+        
+    #     with col2:
+    #         # Display as a table
+    #         st.write("**Top Shows Summary:**")
+    #         for i, (_, show) in enumerate(top_shows.iterrows()):
+    #             st.write(f"{i+1}. **{show['Show']}**")
+    #             st.write(f"   ${show['Grosses ($)']:,.0f}")
+    #             if i < 4:  # Only show first 5 to save space
+    #                 st.write("")
     
-    # Show filtered data
-    st.subheader("Filtered Data")
-    st.dataframe(df_filtered)
+    # Recent Data Preview
+    st.subheader("🔍 Recent Data Preview")
     
-    # Download button for filtered data
-    csv = df_filtered.to_csv(index=False)
-    st.download_button(
-        label="Download filtered data as CSV",
-        data=csv,
-        file_name="filtered_broadway_data.csv",
-        mime="text/csv"
-    )
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        #41 because there are 41 Broadway showhouses
+        st.dataframe(df_filtered.tail(41), use_container_width=True)
+    
+    with col2:
+        st.write("**Data Summary:**")
+        st.write(f"**Total Records:** {len(df_filtered):,}")
+        st.write(f"**Date Range:** {df_filtered['Week End'].min().strftime('%Y-%m-%d')} to {df_filtered['Week End'].max().strftime('%Y-%m-%d')}")
+        st.write(f"**Theatres:** {df_filtered['Theatre'].nunique()}")
+    
+    # Call to action for other pages
+    st.markdown("---")
+    st.subheader("Explore More Analysis")
+    st.markdown("""
+    Interested in diving deeper? Check out my more pointed analyses & visualizations:
+    
+    - **📊 EDAV Analysis**: See visualizations inspired by my previous coursework!
+    - **🤖 Machine Learning**: Predictive models and advanced analytics
+    - **More pages coming soon...**
+    """)
 
 if __name__ == "__main__":
     main()
