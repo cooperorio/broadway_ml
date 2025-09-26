@@ -53,7 +53,7 @@ def calculate_basic_metrics(df):
 ##################################################################
 
 # 1) Top Grossing Shows Visualization
-def top_grossing_segmented_bars_simple(df):
+def top_grossing_segmented_bars(df):
     """
     Simplified version using Plotly Express with pre-processed data
     """

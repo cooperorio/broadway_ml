@@ -1,7 +1,7 @@
 # pages/1_EDAV_Analysis.py
 import streamlit as st
 import pandas as pd
-from analysis.test_functions import top_grossing_plot
+from analysis.test_functions import top_grossing_segmented_bars
 
 st.set_page_config(
     page_title="EDAV Broadway Analysis",
@@ -20,7 +20,7 @@ else:
     st.stop()
 
 # 1) Show all-time top grossing chart
-fig = top_grossing_plot(df)
+fig = top_grossing_segmented_bars(df)
 st.plotly_chart(fig, use_container_width=True)
 
 # 2...) Will add the rest of the functions to be used, here:
