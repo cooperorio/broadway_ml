@@ -11,8 +11,9 @@ from pathlib import Path
 import sys
 import numpy as np
 
-# VERY crude first test function to see if the webapp
-# code was working.
+
+# VERY crude first test function to see if the webapp code was working.
+# NOTE: I think this is vestigial due after finalizing the dashboard
 def calculate_basic_metrics(df):
     """
     Calculate basic metrics for the Broadway data.
@@ -46,80 +47,51 @@ def calculate_basic_metrics(df):
     
     return df, results
 
+#####################################################################
+## EDAV Course Project Visualizations, translated from R to Python ##
+###### (Original project was completed alongside Aylmer Liang) ######
+#####################################################################
+
 # Top Grossing Shows Visualization - hold over from when it was a class project
-def top_grossing_plot(df):
+def top_grossing_plot_simple(df):
     """
-    Create a Cleveland dot plot of top 40 grossing shows, similar to your R visualization
+    Minimalist version - let Plotly handle most formatting
     """
-    # Group by show and calculate total gross, get first theatre for each show
+    # Group and aggregate data
     total_gross_data = df.groupby('Show').agg({
         'Grosses ($)': 'sum',
-        'Theatre': 'first'  # Assuming you have a 'Theatre' column
+        'Theatre': 'first'
     }).reset_index()
     
-    # Sort by total gross and take top 40
+    # Get top 40
     total_gross_data = total_gross_data.nlargest(40, 'Grosses ($)')
     
-    # Create the Cleveland dot plot (lollipop chart)
+    # Convert to hundred-millions
+    total_gross_data['Gross_Hundred_Millions'] = total_gross_data['Grosses ($)'] / 100000000
+    
+    # Simple scatter plot
     fig = px.scatter(
         total_gross_data,
-        x='Grosses ($)',
+        x='Gross_Hundred_Millions',
         y='Show',
         color='Theatre',
         title='Top 40 Grossing Broadway Shows',
         labels={
-            'Grosses ($)': 'Total Gross ($ in Hundred-Millions)',
+            'Gross_Hundred_Millions': 'Total Gross ($ in Hundred-Millions)',
             'Show': 'Show Name'
         }
     )
     
-    # Customize the layout to match your R plot
+    # Let Plotly handle most of the layout
     fig.update_layout(
-        # Use a minimal theme
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        
-        # Adjust margins to prevent label cutoff
-        margin=dict(l=20, r=10, t=50, b=20),
-        
-        # Title styling
-        title={
-            'text': 'Top 40 Grossing Broadway Shows',
-            'x': 0.5,  # Center the title
-            'xanchor': 'center',
-            'font': {'size': 16}
-        },
-        
-        # Y-axis styling (show names)
-        yaxis={
-            'categoryorder': 'total ascending',  # Sort by gross amount
-            'tickfont': {'size': 8}  # Smaller font for show names
-        },
-        
-        # X-axis styling
-        xaxis={
-            'tickfont': {'size': 9},
-            'tickformat': '$,.0f',  # Format as currency
-            'title': {'text': 'Total Gross ($ in Hundred-Millions)'}
-        },
-        
-        # Legend styling
-        legend={
-            'title': 'Initial Theatre',
-            'orientation': 'v',  # Vertical legend
-            'yanchor': 'top',
-            'xanchor': 'left'
-        }
+        height=500,
+        showlegend=True,
+        yaxis={'categoryorder': 'total ascending'}
     )
     
-    # Convert x-axis to hundred-millions (divide by 100,000,000)
-    fig.update_xaxes(tickvals=list(range(0, int(total_gross_data['Grosses ($)'].max() // 100000000 + 1) * 100000000, 100000000)),
-                    ticktext=[f'${x/100000000:.1f}' for x in range(0, int(total_gross_data['Grosses ($)'].max() // 100000000 + 1) * 100000000, 100000000)])
-    
-    # Customize the markers
+    # Simple hover template
     fig.update_traces(
-        marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')),
-        selector=dict(mode='markers')
+        hovertemplate='<b>%{y}</b><br>Gross: $%{x:.1f} Hundred Million<extra></extra>'
     )
     
     return fig

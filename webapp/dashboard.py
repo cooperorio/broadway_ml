@@ -103,9 +103,9 @@ def main():
     with col4:
         if len(df_filtered) > 0 and '% Cap' in df_filtered.columns:
             avg_capacity = df_filtered['% Cap'].mean()
-            st.metric("Average Capacity Percentage", f"{avg_capacity:.1f}%")
+            st.metric("Average Capacity (%)", f"{avg_capacity:.1f}%")
         else:
-            st.metric("Average Capacity Percentage", "0.0%")
+            st.metric("Average Capacity (%)", "0.0%")
     
 
     st.subheader("Individual Show Performance Over Time")
