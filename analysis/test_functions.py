@@ -55,52 +55,98 @@ def calculate_basic_metrics(df):
 # 1) Top Grossing Shows Visualization
 def top_grossing_segmented_bars(df):
     """
-    Simplified version using Plotly Express with pre-processed data
+    Create a horizontal bar chart where each show's bar is segmented by theatres,
+    with segments proportional to the gross revenue from each theatre.
     """
-    # Group by show and theatre
+    # Group by show and theatre to get total gross per show-theatre combination
     show_theatre_gross = df.groupby(['Show', 'Theatre']).agg({
         'Grosses ($)': 'sum',
-        'Week End': 'min'
+        'Week End': ['min', 'max']  # Get first and last week for chronology
     }).reset_index()
     
-    # Calculate total per show for top 40
-    show_totals = show_theatre_gross.groupby('Show')['Grosses ($)'].sum().reset_index()
-    top_40_shows = show_totals.nlargest(40, 'Grosses ($)')['Show'].tolist()
+    # Flatten the column names
+    show_theatre_gross.columns = ['Show', 'Theatre', 'Total_Gross', 'First_Week', 'Last_Week']
     
-    # Filter and sort
+    # Calculate total gross per show for sorting
+    show_totals = show_theatre_gross.groupby('Show')['Total_Gross'].sum().reset_index()
+    top_40_shows = show_totals.nlargest(40, 'Total_Gross')['Show'].tolist()
+    
+    # Filter to only top 40 shows
     show_theatre_gross = show_theatre_gross[show_theatre_gross['Show'].isin(top_40_shows)]
-    show_theatre_gross = show_theatre_gross.sort_values(['Show', 'Week End'])
     
-    # Convert to hundred-millions
-    show_theatre_gross['Gross_HM'] = show_theatre_gross['Grosses ($)'] / 100000000
+    # Sort theatres within each show by first week (chronological order)
+    show_theatre_gross = show_theatre_gross.sort_values(['Show', 'First_Week'])
     
-    # Create a sequential column for stacking
-    show_theatre_gross['Theatre_Order'] = show_theatre_gross.groupby('Show').cumcount()
+    # Calculate cumulative gross for each show (for segment positioning)
+    show_theatre_gross['Cumulative_Gross'] = show_theatre_gross.groupby('Show')['Total_Gross'].cumsum()
+    show_theatre_gross['Segment_Start'] = show_theatre_gross.groupby('Show')['Cumulative_Gross'].shift().fillna(0)
     
-    # Use plotly express with facet (simpler but less control)
-    fig = px.bar(
-        show_theatre_gross,
-        x='Gross_HM',
-        y='Show',
-        color='Theatre',
-        orientation='h',
-        title='Top 40 Grossing Broadway Shows - Segmented by Theatre',
-        labels={'Gross_HM': 'Total Gross ($ in Hundred-Millions)', 'Show': 'Show Name'},
-        category_orders={'Show': top_40_shows[::-1]}  # Reverse to show highest at top
-    )
+    # Convert to hundred-millions for better axis formatting
+    show_theatre_gross['Total_Gross_HM'] = show_theatre_gross['Total_Gross'] / 100000000
+    show_theatre_gross['Segment_Start_HM'] = show_theatre_gross['Segment_Start'] / 100000000
+    show_theatre_gross['Segment_End_HM'] = (show_theatre_gross['Segment_Start'] + show_theatre_gross['Total_Gross']) / 100000000
     
+    # Create a color map for theatres (consistent colors across shows)
+    unique_theatres = show_theatre_gross['Theatre'].unique()
+    colors = px.colors.qualitative.Set3  # Using a qualitative color scheme
+    color_map = {theatre: colors[i % len(colors)] for i, theatre in enumerate(unique_theatres)}
+    
+    # Create the figure
+    fig = go.Figure()
+    
+    # Add segments for each show-theatre combination
+    for _, segment in show_theatre_gross.iterrows():
+        fig.add_trace(go.Bar(
+            y=[segment['Show']],
+            x=[segment['Total_Gross_HM']],
+            base=[segment['Segment_Start_HM']],
+            orientation='h',
+            name=segment['Theatre'],
+            marker=dict(color=color_map[segment['Theatre']]),
+            hovertemplate=(
+                f"<b>{segment['Show']}</b><br>"
+                f"Theatre: {segment['Theatre']}<br>"
+                f"Gross: ${segment['Total_Gross']:,.0f}<br>"
+                f"Period: {segment['First_Week'].strftime('%Y-%m-%d')} to {segment['Last_Week'].strftime('%Y-%m-%d')}<br>"
+                f"<extra></extra>"
+            ),
+            showlegend=False  # We'll handle legend separately
+        ))
+    
+    # Create legend entries (one per theatre)
+    for theatre, color in color_map.items():
+        if theatre in show_theatre_gross['Theatre'].values:
+            fig.add_trace(go.Scatter(
+                x=[None], y=[None],
+                mode='markers',
+                marker=dict(size=10, color=color),
+                legendgroup="theatres",
+                name=theatre,
+                showlegend=True
+            ))
+    
+    # Update layout
     fig.update_layout(
-        height=1000,
+        title='Top 40 Grossing Broadway Shows - Segmented by Theatre',
+        xaxis_title='Total Gross ($ in Hundred-Millions)',
+        yaxis_title='Show Name',
         barmode='stack',
-        yaxis={'categoryorder': 'total ascending'},
-        xaxis={'tickformat': '$.1f'},
+        height=1200,  # Increased height for 40 shows
+        showlegend=True,
         legend=dict(
             title='Theatres',
             orientation='v',
             yanchor='top',
             xanchor='left',
-            x=1.02,
+            x=1.05,
             y=1
+        ),
+        yaxis=dict(
+            categoryorder='total ascending',  # Sort by total gross
+            tickfont=dict(size=10)
+        ),
+        xaxis=dict(
+            tickformat='$.1f'
         )
     )
     
