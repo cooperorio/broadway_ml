@@ -53,94 +53,55 @@ def calculate_basic_metrics(df):
 ##################################################################
 
 # 1) Top Grossing Shows Visualization
-def top_grossing_plot(df):
+def top_grossing_segmented_bars_simple(df):
     """
-    Create a Cleveland dot plot of top 40 grossing shows with proper vertical spacing
+    Simplified version using Plotly Express with pre-processed data
     """
-    # Group by show and calculate total gross, get first theatre for each show
-    total_gross_data = df.groupby('Show').agg({
+    # Group by show and theatre
+    show_theatre_gross = df.groupby(['Show', 'Theatre']).agg({
         'Grosses ($)': 'sum',
-        'Theatre': 'first'
+        'Week End': 'min'
     }).reset_index()
     
-    # Sort by total gross and take top 40
-    total_gross_data = total_gross_data.nlargest(40, 'Grosses ($)')
+    # Calculate total per show for top 40
+    show_totals = show_theatre_gross.groupby('Show')['Grosses ($)'].sum().reset_index()
+    top_40_shows = show_totals.nlargest(40, 'Grosses ($)')['Show'].tolist()
     
-    # Convert to hundred-millions for cleaner x-axis
-    total_gross_data['Gross_Hundred_Millions'] = total_gross_data['Grosses ($)'] / 100000000
+    # Filter and sort
+    show_theatre_gross = show_theatre_gross[show_theatre_gross['Show'].isin(top_40_shows)]
+    show_theatre_gross = show_theatre_gross.sort_values(['Show', 'Week End'])
     
-    # Calculate dynamic height based on number of shows (more shows = taller chart)
-    base_height = 800  # Base height for good visibility
-    min_height = 600   # Minimum height
-    max_height = 1200  # Maximum height to prevent excessive scrolling
+    # Convert to hundred-millions
+    show_theatre_gross['Gross_HM'] = show_theatre_gross['Grosses ($)'] / 100000000
     
-    num_shows = len(total_gross_data)
-    dynamic_height = min(max(min_height, base_height + (num_shows - 20) * 15), max_height)
+    # Create a sequential column for stacking
+    show_theatre_gross['Theatre_Order'] = show_theatre_gross.groupby('Show').cumcount()
     
-    # Create the dot plot
-    fig = px.scatter(
-        total_gross_data,
-        x='Gross_Hundred_Millions',
+    # Use plotly express with facet (simpler but less control)
+    fig = px.bar(
+        show_theatre_gross,
+        x='Gross_HM',
         y='Show',
         color='Theatre',
-        title='Top 40 Grossing Broadway Shows',
-        labels={
-            'Gross_Hundred_Millions': 'Total Gross ($ in Hundred-Millions)',
-            'Show': 'Show Name'
-        }
+        orientation='h',
+        title='Top 40 Grossing Broadway Shows - Segmented by Theatre',
+        labels={'Gross_HM': 'Total Gross ($ in Hundred-Millions)', 'Show': 'Show Name'},
+        category_orders={'Show': top_40_shows[::-1]}  # Reverse to show highest at top
     )
     
-    # Layout optimized for vertical space
     fig.update_layout(
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        showlegend=True,
-        height=dynamic_height,  # Dynamic height based on number of shows
-        margin=dict(l=150, r=50, t=80, b=50),  # More left margin for show names
-        
-        # Title settings
-        title={
-            'text': 'Top 40 Grossing Broadway Shows',
-            'x': 0.5,
-            'xanchor': 'center',
-            'font': {'size': 20},
-            'y': 0.98  # Position title near top
-        },
-        
-        # Y-axis settings (critical for show names)
-        yaxis={
-            'categoryorder': 'total ascending',
-            'tickfont': {'size': 12},  # Larger font for readability
-            'title': {'text': 'Show Name', 'font': {'size': 14}},
-            'automargin': True,  # Let Plotly handle margins for y-axis labels
-            'ticksuffix': '  ',  # Add some space after each tick
-        },
-        
-        # X-axis settings
-        xaxis={
-            'tickformat': '$.1f',
-            'title': {'text': 'Total Gross ($ in Hundred-Millions)', 'font': {'size': 14}},
-            'tickfont': {'size': 11},
-        },
-        
-        # Legend settings
-        legend={
-            'title': {'text': 'Theatre', 'font': {'size': 12}},
-            'orientation': 'v',
-            'yanchor': 'top',
-            'xanchor': 'left',
-            'x': 1.02,  # Move legend outside the plot area
-            'y': 1,
-            'bgcolor': 'rgba(255,255,255,0.8)',
-            'bordercolor': 'rgba(0,0,0,0.2)',
-            'borderwidth': 1
-        }
-    )
-    
-    # Marker and hover settings
-    fig.update_traces(
-        marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')),
-        hovertemplate='<b>%{y}</b><br>Theatre: %{marker.color}<br>Total Gross: $%{x:.1f} Hundred Million<extra></extra>'
+        height=1000,
+        barmode='stack',
+        yaxis={'categoryorder': 'total ascending'},
+        xaxis={'tickformat': '$.1f'},
+        legend=dict(
+            title='Theatres',
+            orientation='v',
+            yanchor='top',
+            xanchor='left',
+            x=1.02,
+            y=1
+        )
     )
     
     return fig
