@@ -150,23 +150,4 @@ def top_grossing_segmented_bars(df):
         )
     )
 
-    # Add caption as annotation to describe that theatres' names are preserved
-    fig.add_annotation(
-        x=0,  # Left-aligned
-        y=-0.15,  # Position below the chart
-        xref="paper", yref="paper",
-        text= ("Note: Theatre names are preserved as recorded historically, "
-            "including name changes over time. For information on which theatres"
-            "were renamed to which others, and which may no longer be active at all,"
-            " see the following wikipedia page: "
-            "https://en.wikipedia.org/wiki/List_of_Broadway_theaters#Active_Broadway_theaters"),
-        showarrow=False,
-        font=dict(size=10, color="gray"),
-        align="left",
-        xanchor="left"
-    )
-    
-    # Adjust margin to make room for the caption
-    fig.update_layout(margin=dict(b=100))  # Increase bottom margin
-
     return fig
