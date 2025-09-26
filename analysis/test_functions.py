@@ -53,7 +53,7 @@ def calculate_basic_metrics(df):
 #####################################################################
 
 # Top Grossing Shows Visualization - hold over from when it was a class project
-def top_grossing_plot_simple(df):
+def top_grossing_plot(df):
     """
     Minimalist version - let Plotly handle most formatting
     """
