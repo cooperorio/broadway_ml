@@ -1,7 +1,7 @@
 # pages/1_EDAV_Analysis.py
 import streamlit as st
 import pandas as pd
-from analysis.test_functions import top_grossing_segmented_bars
+from analysis.test_functions import top_grossing_segmented_bars, theatre_metric_plot
 
 st.set_page_config(
     page_title="EDAV Broadway Analysis",
@@ -23,7 +23,7 @@ else:
 fig = top_grossing_segmented_bars(df)
 st.plotly_chart(fig, use_container_width=True)
 
-# Caption for context that theatre names change
+# 1.1) Caption for context that theatre names change
 st.caption(
     "Note: Theatre names are preserved as recorded historically, "
     "including name changes over time. For information on which theatres"
@@ -33,3 +33,12 @@ st.caption(
     )
 
 # 2...) Will add the rest of the functions to be used, here:
+fig_theatre = theatre_metric_plot(df)
+st.plotly_chart(fig_theatre, use_container_width=True)
+    
+# Add context about the data
+st.caption(
+    "This chart toggles between showing the average percent capacity for each" \
+    "theatre to compare the success of the different theatres, and showing the" \
+    " number of unique shows played at each theatre (just for fun)."
+)

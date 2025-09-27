@@ -131,7 +131,7 @@ def top_grossing_segmented_bars(df):
         xaxis_title='Total Gross ($ in Hundred-Millions)',
         yaxis_title='Show Name',
         barmode='stack',
-        height=1200,  # Increased height for 40 shows
+        height=1200,  # Large height to show 40 shows
         showlegend=True,
         legend=dict(
             title='Theatres',
@@ -150,4 +150,93 @@ def top_grossing_segmented_bars(df):
         )
     )
 
+    return fig
+
+
+# 2) Average percentage capacity for each theatre to compare them by success
+# 2.1) Also toggles to a plot of the number of unique shows at each for fun
+def theatre_metric_plot(df, metric='capacity'):
+    """
+    Creates a dot plot showing either average capacity (or number of unique shows) by theatre
+    """
+    # Group by theatre and calculate both metrics
+    theatre_data = df.groupby('Theatre').agg({
+        '% Cap': 'mean',
+        'Show': 'nunique'
+    }).reset_index()
+    
+    # Determine which metric to use
+    if metric == 'capacity':
+        x_metric = '% Cap'
+        x_title = 'Average Capacity (%)'
+        x_format = {'ticksuffix': '%', 'range': [0, 100]}
+        sort_metric = '% Cap'
+        hover_template = '<b>%{y}</b><br>Avg Capacity: <b>%{x:.1f}%</b><br>Unique Shows: %{customdata}<extra></extra>'
+    else:  # show_count
+        x_metric = 'Show'
+        x_title = 'Number of Unique Shows'
+        x_format = {}  # No special formatting for count
+        sort_metric = 'Show'
+        hover_template = '<b>%{y}</b><br>Unique Shows: <b>%{x}</b><br>Avg Capacity: %{customdata:.1f}%<extra></extra>'
+    
+    # Sort by the selected metric
+    theatre_data = theatre_data.sort_values(sort_metric, ascending=False)
+    
+    # Create scatter plot
+    fig = px.scatter(
+        theatre_data,
+        x=x_metric,
+        y='Theatre',
+        title=f'Theatre Comparison: {x_title}',
+        labels={
+            x_metric: x_title,
+            'Theatre': 'Theatre Name'
+        }
+    )
+    
+    # Apply consistent layout to the above chart
+    fig.update_layout(
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        height=max(800, len(theatre_data) * 18),
+        margin=dict(l=200, r=50, t=80, b=50),
+        
+        title={
+            'text': f'Theatre Comparison: {x_title}',
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20}
+        },
+        
+        yaxis={
+            'categoryorder': 'total ascending',
+            'tickfont': {'size': 10},
+            'title': {'text': 'Theatre Name', 'font': {'size': 14}},
+            'automargin': True
+        },
+        
+        xaxis={
+            'tickfont': {'size': 11},
+            'title': {'text': x_title, 'font': {'size': 14}},
+            **x_format  # Apply the format (suffix, range, etc.)
+        }
+    )
+    
+    # Set custom data for hover based on which metric isn't the primary one
+    if metric == 'capacity':
+        custom_data = theatre_data['Show']  # Show count in hover
+    else:
+        custom_data = theatre_data['% Cap']  # Capacity in hover
+    
+    # Enhanced marker styling
+    fig.update_traces(
+        marker=dict(
+            size=8,
+            color='#1f77b4',  # Consistent blue
+            line=dict(width=1, color='darkblue')
+        ),
+        hovertemplate=hover_template,
+        customdata=custom_data
+    )
+    
     return fig
