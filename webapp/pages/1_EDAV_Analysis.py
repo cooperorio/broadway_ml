@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 from analysis.test_functions import top_grossing_segmented_bars, theatre_capacity_plot
 from analysis.test_functions import gross_vs_attendance_regression_plot, display_regression_summary
-from analysis.test_functions import gross_vs_attendance_by_show_type
+from analysis.test_functions import gross_vs_attendance_by_show_type, display_faceted_analysis_results
 
 st.set_page_config(
     page_title="EDAV Broadway Analysis",
@@ -89,8 +89,10 @@ of tickets in total.
 ******add information about how this motivates the next plot HERE
 """)
 
+# 4) Faceted the gross vs attendance by show type
+
 # Create the faceted plot
-fig_faceted = gross_vs_attendance_by_show_type(df)
+fig_faceted, regression_stats = gross_vs_attendance_by_show_type(df)
 st.plotly_chart(fig_faceted, use_container_width=True)
 
 # Add context and interpretation
@@ -99,6 +101,8 @@ st.caption(
     "different types of shows. Each subplot represents a different show category. "
     "The red trendlines help visualize the general pattern for each show type."
 )
+
+display_faceted_analysis_results(regression_stats)
 
 # Optional: Add some quick statistics
 with st.expander("Show Type Statistics"):

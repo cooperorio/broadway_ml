@@ -13,6 +13,7 @@ import numpy as np
 import statsmodels.api as sm
 from scipy import stats
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
 
 
 # VERY crude first test function to see if the webapp code was working.
@@ -293,7 +294,13 @@ def gross_vs_attendance_regression_plot(df):
         title_text='Weekly Gross vs Weekly Attendance with Linear Regression',
         title_x=0.5,
         title_font_size=20,
-        yaxis_tickformat='$,.0f'
+        yaxis_tickformat='$,.0f',
+        title={ # fixed to center the title
+            'text': 'Weekly Gross vs Weekly Attendance with Linear Regression',
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20}
+        }
     )
 
     # Separate axis updates (cleaner approach)
@@ -408,6 +415,9 @@ def gross_vs_attendance_by_show_type(df):
         opacity=0.3
     )
     
+    # Store regression statistics for each show type to be displayed on the page
+    regression_stats = []
+
     # Add trendlines to each subplot
     for i, show_type in enumerate(show_types, 1):
         # Filter data for this show type
@@ -419,30 +429,102 @@ def gross_vs_attendance_by_show_type(df):
             
             model = LinearRegression()
             model.fit(X, y)
+            y_pred = model.predict(X)
+            r2 = r2_score(y, y_pred)
+            
+            # Store statistics
+            regression_stats.append({
+                'Show Type': show_type,
+                'Intercept': model.intercept_,
+                'Slope': model.coef_[0],
+                'R²': r2,
+                'Observations': len(type_data)
+            })
             
             # Add trendline
             x_range = np.linspace(type_data['Attend'].min(), type_data['Attend'].max(), 100)
-            y_pred = model.predict(x_range.reshape(-1, 1))
+            y_pred_range = model.predict(x_range.reshape(-1, 1))
             
             fig.add_trace(go.Scatter(
-                x=x_range, y=y_pred, 
+                x=x_range, y=y_pred_range, 
                 mode='lines', 
                 line=dict(color='red', width=2),
                 showlegend=False,
                 name=f'Trendline'
             ), row=1, col=i)  # Use i directly instead of index lookup
     
-    # Apply consistent layout
+    # FIXED: Proper title centering
     fig.update_layout(
         plot_bgcolor='white',
         paper_bgcolor='white',
         height=600,
         margin=dict(l=50, r=50, t=80, b=50),
-        title_x=0.5  # Simpler way to center title
+        
+        # Correct title centering - used the dictionary format
+        title={
+            'text': 'Weekly Gross vs Weekly Attendance by Show Type',
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20}
+        }
     )
     
     # Update axes
     fig.update_yaxes(tickformat='$,.0f')
     fig.update_traces(marker=dict(size=3, color='blue'))
     
-    return fig
+    return fig, regression_stats
+
+# 4.1) ...and a function to show information regarding the fits of the subplots:
+
+def display_faceted_analysis_results(regression_stats):
+    """
+    Display the regression statistics in an expander, taking the stats as inputs
+    """
+    with st.expander("Regression Statistics by Show Type", expanded=False):
+        # Convert to DataFrame for nice formatting
+        stats_df = pd.DataFrame(regression_stats)
+        
+        # Format the DataFrame display
+        styled_df = stats_df.style.format({
+            'Intercept': '${:,.0f}',
+            'Slope': '${:.2f}',
+            'R²': '{:.3f}',
+            'Observations': '{:,}'
+        })
+        
+        st.dataframe(styled_df, use_container_width=True)
+        
+        # Add interpretation
+        st.caption(
+            "**Interpretation:** "
+            "- **Intercept**: Base revenue when attendance is zero "
+            "- **Slope**: Additional revenue per attendee "
+            "- **R²**: Proportion of variance explained (higher = better fit)"
+        )
+        
+        # Show which show types have the strongest relationships
+        if len(regression_stats) > 1:
+            strongest = max(regression_stats, key=lambda x: x['R²'])
+            steepest = max(regression_stats, key=lambda x: x['Slope'])
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric(
+                    "Strongest Relationship", 
+                    strongest['Show Type'],
+                    delta=f"R² = {strongest['R²']:.3f}"
+                )
+            with col2:
+                st.metric(
+                    "Highest Revenue per Attendee",
+                    steepest['Show Type'], 
+                    delta=f"${steepest['Slope']:.2f}/person"
+                )
+        
+        # Context caption
+        st.caption(
+            "This chart shows how the relationship between attendance and revenue varies across "
+            "different types of shows. Each subplot represents a different show category. "
+            "The red trendlines help visualize the general pattern for each show type."
+        )
