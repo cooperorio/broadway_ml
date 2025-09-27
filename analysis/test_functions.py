@@ -165,9 +165,9 @@ def theatre_capacity_plot(df):
     
     # Remove Princess theatre if it's a significant outlier. Considering
     # its renaming & discontinuation, it likely will be an outlier from now on.
-    princess_capacity = theatre_data[theatre_data['Theatre'] == 'Princess Theatre']
+    princess_capacity = theatre_data[theatre_data['Theatre'] == 'Princess']
     if not princess_capacity.empty and princess_capacity['% Cap'].iloc[0] > 100:
-        theatre_data = theatre_data[theatre_data['Theatre'] != 'Princess Theatre']
+        theatre_data = theatre_data[theatre_data['Theatre'] != 'Princess']
         princess_removed = True
     else:
         princess_removed = False

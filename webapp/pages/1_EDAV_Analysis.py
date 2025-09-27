@@ -32,13 +32,12 @@ st.caption(
     "https://en.wikipedia.org/wiki/List_of_Broadway_theaters#Active_Broadway_theaters"
     )
 
-# 2...) Will add the rest of the functions to be used, here:
+# 2) Plot of the Theatres' grosses for comparison (not directly included
+#    in the EDAV project, but inspired by its questions)
 fig_theatre, princess_removed = theatre_capacity_plot(df)
 st.plotly_chart(fig_theatre, use_container_width=True)
 
-# Add context about the data
-
-
+# Add context about the data & removal thereof
 if princess_removed:
     st.caption(
         " Note: Princess Theatre has been removed from this visualization "
@@ -50,4 +49,4 @@ if princess_removed:
         "https://en.wikipedia.org/wiki/Latin_Quarter_(nightclub)#Broadway_theatre"
     )
 
-st.caption(caption_text)
+# 3...) W
