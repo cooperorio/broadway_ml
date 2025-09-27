@@ -12,6 +12,7 @@ import sys
 import numpy as np
 import statsmodels.api as sm
 from scipy import stats
+from sklearn.linear_model import LinearRegression
 
 
 # VERY crude first test function to see if the webapp code was working.
@@ -285,29 +286,19 @@ def gross_vs_attendance_regression_plot(df):
     
     # Then I apply a consistent layout with my other charts
     fig.update_layout(
-        plot_bgcolor='white',        # Matches your other charts
-        paper_bgcolor='white',       # Matches your other charts
-        height=600,                  # Consistent height with other plots
-        margin=dict(l=50, r=50, t=80, b=50),  # Prevents label cropping
-        
-        title={
-            'text': 'Weekly Gross vs Weekly Attendance with Linear Regression',
-            'x': 0.5,                # Centers the title (important!)
-            'xanchor': 'center',      # Centers the title
-            'font': {'size': 20}      # Matches your other chart titles
-        },
-        
-        yaxis={
-            'tickfont': {'size': 11},
-            'title': {'text': 'Gross ($)', 'font': {'size': 14}},
-            'tickformat': '$,.0f'    # Formats as currency - CRITICAL!
-        },
-        
-        xaxis={
-            'tickfont': {'size': 11},
-            'title': {'text': 'Attendance', 'font': {'size': 14}}
-        }
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        height=600,
+        margin=dict(l=50, r=50, t=80, b=50),
+        title_text='Weekly Gross vs Weekly Attendance with Linear Regression',
+        title_x=0.5,
+        title_font_size=20,
+        yaxis_tickformat='$,.0f'
     )
+
+    # Separate axis updates (cleaner approach)
+    fig.update_yaxes(title_text='Gross ($)', tickfont_size=11, title_font_size=14)
+    fig.update_xaxes(title_text='Attendance', tickfont_size=11, title_font_size=14)
     
     return fig, model
 
@@ -317,9 +308,6 @@ def display_regression_summary(model):
     Display regression summary in a format similar to R's summary(lm())
     """
     st.subheader("Linear Regression Summary")
-    
-    # Create a summary similar to R's output
-    summary_data = []
     
     # Coefficients table (like R's Coefficients section)
     st.write("**Coefficients:**")
@@ -390,3 +378,71 @@ def display_regression_summary(model):
     #     ]
     # })
     # st.dataframe(resid_df.style.format({'Value': '{:.2f}'}), hide_index=True)
+
+# 4) Faceted plot by show type, with linear fits presented.
+# - I didn't need as much statistical rigor here, so I decided
+#   to use sklearn instead of statsmodels (simpler to implement).
+def gross_vs_attendance_by_show_type(df):
+    """
+    Create faceted scatter plots of gross vs attendance by show type
+    """
+    # Remove rows with missing values
+    plot_data = df[['Attend', 'Grosses ($)', 'Type']].dropna()
+    
+    # Get unique show types
+    show_types = plot_data['Type'].unique()
+    
+    # Create faceted scatter plot
+    fig = px.scatter(
+        plot_data,
+        x='Attend',
+        y='Grosses ($)',
+        facet_col='Type',
+        facet_col_wrap=3,  # 3 columns of subplots
+        category_orders={'Type': show_types},  # Ensure consistent order
+        title='Weekly Gross vs Weekly Attendance by Show Type',
+        labels={
+            'Attend': 'Attendance',
+            'Grosses ($)': 'Gross ($)'
+        },
+        opacity=0.3
+    )
+    
+    # Add trendlines to each subplot
+    for i, show_type in enumerate(show_types, 1):
+        # Filter data for this show type
+        type_data = plot_data[plot_data['Type'] == show_type]
+        if len(type_data) > 1:  # Need at least 2 points for trendline
+            # Calculate linear regression
+            X = type_data['Attend'].values.reshape(-1, 1)
+            y = type_data['Grosses ($)'].values
+            
+            model = LinearRegression()
+            model.fit(X, y)
+            
+            # Add trendline
+            x_range = np.linspace(type_data['Attend'].min(), type_data['Attend'].max(), 100)
+            y_pred = model.predict(x_range.reshape(-1, 1))
+            
+            fig.add_trace(go.Scatter(
+                x=x_range, y=y_pred, 
+                mode='lines', 
+                line=dict(color='red', width=2),
+                showlegend=False,
+                name=f'Trendline'
+            ), row=1, col=i)  # Use i directly instead of index lookup
+    
+    # Apply consistent layout
+    fig.update_layout(
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        height=600,
+        margin=dict(l=50, r=50, t=80, b=50),
+        title_x=0.5  # Simpler way to center title
+    )
+    
+    # Update axes
+    fig.update_yaxes(tickformat='$,.0f')
+    fig.update_traces(marker=dict(size=3, color='blue'))
+    
+    return fig
