@@ -267,7 +267,7 @@ def gross_vs_attendance_regression_plot(df):
             'Attend': 'Attendance',
             'Grosses ($)': 'Gross ($)'
         },
-        opacity=0.3
+        opacity=0.28 # tweaked just so the red line is a little more visible
     )
     
     # ... and add regression line using the model parameters

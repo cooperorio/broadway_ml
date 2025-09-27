@@ -74,4 +74,16 @@ weekly gross revenue increases by **${slope:.2f}** on average.
 - **Slope (${slope:.2f})**: The estimated revenue per additional attendee.
 - **R² ({r_squared:.3f})**: {r_squared*100:.1f}% of the variation in gross revenue 
                             can be explained by attendance.
+
+Here you can see that the data sees a much greater spread as the attendance/ticket sales increase,
+and coupling this with the only moderately-sized R² value present, and the not insignificant
+portion of the line of best fit dipping into the negative, it is likely that the relationship here,
+though significant, is not strictly linear.
+
+The above is further evidenced by the phenomenon of vertical pillars of data visible in the plot.
+This can probably be explained by theatres housing particularly popular shows selling out entirely,
+leading to an increase of ticket prices (and by extension, grosses), while selling the same number
+of tickets in total.
+
+******add information about how this motivates the next plot HERE
 """)
