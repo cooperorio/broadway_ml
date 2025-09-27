@@ -375,17 +375,18 @@ def display_regression_summary(model):
     })
     st.dataframe(stats_df, hide_index=True)
     
-    # Diagnostic information
-    st.write("**Residual Statistics:**")
-    residuals = model.resid
-    resid_df = pd.DataFrame({
-        'Statistic': ['Min', '1Q', 'Median', '3Q', 'Max'],
-        'Value': [
-            residuals.min(),
-            np.percentile(residuals, 25),
-            np.median(residuals),
-            np.percentile(residuals, 75),
-            residuals.max()
-        ]
-    })
-    st.dataframe(resid_df.style.format({'Value': '{:.2f}'}), hide_index=True)
+    # # Diagnostic information - potentially interesting, but feels more
+    #                            like clutter than anything else
+    # st.write("**Residual Statistics:**")
+    # residuals = model.resid
+    # resid_df = pd.DataFrame({
+    #     'Statistic': ['Min', '1Q', 'Median', '3Q', 'Max'],
+    #     'Value': [
+    #         residuals.min(),
+    #         np.percentile(residuals, 25),
+    #         np.median(residuals),
+    #         np.percentile(residuals, 75),
+    #         residuals.max()
+    #     ]
+    # })
+    # st.dataframe(resid_df.style.format({'Value': '{:.2f}'}), hide_index=True)

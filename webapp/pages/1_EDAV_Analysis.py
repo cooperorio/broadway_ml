@@ -67,11 +67,11 @@ st.write(f"""
 The linear regression model suggests that for each additional attendee, 
 weekly gross revenue increases by **${slope:.2f}** on average.
 
-- **Intercept (${intercept:,.0f})**: This *would* be the estimated base revenue 
-                                     when attendance is zero, but because it is
-                                     well out of the reasonable range, it isn't 
-                                     really interpretable in a meaninful way.
-- **Slope (${slope:.2f})**: The estimated revenue per additional attendee
+- **Intercept (${intercept:,.0f})**: This *would* be the estimated base revenue when attendance is
+                                     zero, but because grosses here are reported as always positive, 
+                                     being the total amount of money brought in through ticket
+                                     sales, it isn't really interpretable in a meaningful way.
+- **Slope (${slope:.2f})**: The estimated revenue per additional attendee.
 - **R² ({r_squared:.3f})**: {r_squared*100:.1f}% of the variation in gross revenue 
-    can be explained by attendance
+                            can be explained by attendance.
 """)
