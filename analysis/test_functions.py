@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 from pathlib import Path
 import sys
 import numpy as np
+import statsmodels.api as sm
+from scipy import stats
 
 
 # VERY crude first test function to see if the webapp code was working.
@@ -236,3 +238,154 @@ def theatre_capacity_plot(df):
     )
     
     return fig, princess_removed
+
+# 3) Grosses vs. Attendance w/ Linear Fit
+def gross_vs_attendance_regression_plot(df):
+    """
+    Create a scatter plot with linear regression using statsmodels
+    """
+    # First, I remove rows with missing values
+    plot_data = df[['Attend', 'Grosses ($)']].dropna()
+    
+    # Then I prepare data for the statsmodels regression...
+    X = plot_data['Attend']  # Independent variable
+    y = plot_data['Grosses ($)']  # Dependent variable
+    
+    # ...add constant for intercept to make it work with statsmodels...
+    X = sm.add_constant(X)
+    
+    # ... and perform ordinary linear regression
+    model = sm.OLS(y, X).fit()
+    
+    # Then I create the scatter plot...
+    fig = px.scatter(
+        plot_data,
+        x='Attend',
+        y='Grosses ($)',
+        title='Weekly Gross vs Weekly Attendance with Linear Regression',
+        labels={
+            'Attend': 'Attendance',
+            'Grosses ($)': 'Gross ($)'
+        },
+        opacity=0.3
+    )
+    
+    # ... and add regression line using the model parameters
+    x_range = np.linspace(plot_data['Attend'].min(), plot_data['Attend'].max(), 100)
+    X_pred = sm.add_constant(x_range)
+    y_pred = model.predict(X_pred)
+    
+    fig.add_trace(go.Scatter(
+        x=x_range,
+        y=y_pred,
+        mode='lines',
+        line=dict(color='red', width=3),
+        name='Linear Regression Fit'
+    ))
+    
+    # Then I apply a consistent layout with my other charts
+    fig.update_layout(
+        plot_bgcolor='white',        # Matches your other charts
+        paper_bgcolor='white',       # Matches your other charts
+        height=600,                  # Consistent height with other plots
+        margin=dict(l=50, r=50, t=80, b=50),  # Prevents label cropping
+        
+        title={
+            'text': 'Weekly Gross vs Weekly Attendance with Linear Regression',
+            'x': 0.5,                # Centers the title (important!)
+            'xanchor': 'center',      # Centers the title
+            'font': {'size': 20}      # Matches your other chart titles
+        },
+        
+        yaxis={
+            'tickfont': {'size': 11},
+            'title': {'text': 'Gross ($)', 'font': {'size': 14}},
+            'tickformat': '$,.0f'    # Formats as currency - CRITICAL!
+        },
+        
+        xaxis={
+            'tickfont': {'size': 11},
+            'title': {'text': 'Attendance', 'font': {'size': 14}}
+        }
+    )
+    
+    return fig, model
+
+# 3.1)... and a function to display the analysis more clearly
+def display_regression_summary(model):
+    """
+    Display regression summary in a format similar to R's summary(lm())
+    """
+    st.subheader("Linear Regression Summary")
+    
+    # Create a summary similar to R's output
+    summary_data = []
+    
+    # Coefficients table (like R's Coefficients section)
+    st.write("**Coefficients:**")
+    coef_df = pd.DataFrame({
+        'Estimate': model.params,
+        'Std. Error': model.bse,
+        't value': model.tvalues,
+        'Pr(>|t|)': model.pvalues
+    })
+    
+    # Format p-values with stars like R does
+    def format_pvalue(p):
+        if p < 0.001:
+            return f"{p:.4f} ***"
+        elif p < 0.01:
+            return f"{p:.4f} **"
+        elif p < 0.05:
+            return f"{p:.4f} *"
+        elif p < 0.1:
+            return f"{p:.4f} ."
+        else:
+            return f"{p:.4f}"
+    
+    coef_df['Pr(>|t|)'] = coef_df['Pr(>|t|)'].apply(format_pvalue)
+    st.dataframe(coef_df.style.format({
+        'Estimate': '{:.2f}',
+        'Std. Error': '{:.2f}',
+        't value': '{:.2f}'
+    }))
+    
+    st.caption("Significance codes: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.1")
+    
+    # Model statistics (like R's bottom section)
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("R-squared", f"{model.rsquared:.4f}")
+    
+    with col2:
+        st.metric("Adj. R-squared", f"{model.rsquared_adj:.4f}")
+    
+    with col3:
+        st.metric("F-statistic", f"{model.fvalue:.2f}")
+    
+    with col4:
+        st.metric("P-value (F)", f"{model.f_pvalue:.4f}")
+    
+    # Additional statistics
+    st.write("**Model Statistics:**")
+    stats_df = pd.DataFrame({
+        'Statistic': ['Observations', 'Df Residuals', 'Df Model'],
+        'Value': [model.nobs, model.df_resid, model.df_model]
+    })
+    st.dataframe(stats_df, hide_index=True)
+    
+    # Diagnostic information
+    st.write("**Residual Statistics:**")
+    residuals = model.resid
+    resid_df = pd.DataFrame({
+        'Statistic': ['Min', '1Q', 'Median', '3Q', 'Max'],
+        'Value': [
+            residuals.min(),
+            np.percentile(residuals, 25),
+            np.median(residuals),
+            np.percentile(residuals, 75),
+            residuals.max()
+        ]
+    })
+    st.dataframe(resid_df.style.format({'Value': '{:.2f}'}), hide_index=True)

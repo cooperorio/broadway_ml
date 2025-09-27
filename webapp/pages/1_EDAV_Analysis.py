@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 from analysis.test_functions import top_grossing_segmented_bars, theatre_capacity_plot
+from analysis.test_functions import gross_vs_attendance_regression_plot, display_regression_summary
 
 st.set_page_config(
     page_title="EDAV Broadway Analysis",
@@ -49,4 +50,28 @@ if princess_removed:
         "https://en.wikipedia.org/wiki/Latin_Quarter_(nightclub)#Broadway_theatre"
     )
 
-# 3...) W
+# 3) Grosses vs. Attendance Linear Plot & Regression
+fig_gross_attend, regression_model = gross_vs_attendance_regression_plot(df)
+st.plotly_chart(fig_gross_attend, use_container_width=True)
+
+# 3.1) Display the regression summary
+display_regression_summary(regression_model)
+
+# Interpretation
+st.subheader("Interpretation")
+intercept = regression_model.params['const']
+slope = regression_model.params['Attend']
+r_squared = regression_model.rsquared
+
+st.write(f"""
+The linear regression model suggests that for each additional attendee, 
+weekly gross revenue increases by **${slope:.2f}** on average.
+
+- **Intercept (${intercept:,.0f})**: This *would* be the estimated base revenue 
+                                     when attendance is zero, but because it is
+                                     well out of the reasonable range, it isn't 
+                                     really interpretable in a meaninful way.
+- **Slope (${slope:.2f})**: The estimated revenue per additional attendee
+- **R² ({r_squared:.3f})**: {r_squared*100:.1f}% of the variation in gross revenue 
+    can be explained by attendance
+""")
