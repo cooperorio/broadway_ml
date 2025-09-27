@@ -1,7 +1,7 @@
 # pages/1_EDAV_Analysis.py
 import streamlit as st
 import pandas as pd
-from analysis.test_functions import top_grossing_segmented_bars, theatre_metric_plot
+from analysis.test_functions import top_grossing_segmented_bars, theatre_capacity_plot
 
 st.set_page_config(
     page_title="EDAV Broadway Analysis",
@@ -33,12 +33,21 @@ st.caption(
     )
 
 # 2...) Will add the rest of the functions to be used, here:
-fig_theatre = theatre_metric_plot(df)
+fig_theatre, princess_removed = theatre_capacity_plot(df)
 st.plotly_chart(fig_theatre, use_container_width=True)
-    
+
 # Add context about the data
-st.caption(
-    "This chart toggles between showing the average percent capacity for each" \
-    "theatre to compare the success of the different theatres, and showing the" \
-    " number of unique shows played at each theatre (just for fun)."
-)
+
+
+if princess_removed:
+    st.caption(
+        " Note: Princess Theatre has been removed from this visualization "
+        "as its capacity values significantly exceed 100% (well over 200%), "
+        "and considering its renaming (Latin Quarter) & subsequent discontinuation " 
+        "as a Broadway Theatre, it will likely remain as such. For more information " 
+        "on the Princess Theatre that was active in the 1980s, see the following " 
+        "wikipedia article: "
+        "https://en.wikipedia.org/wiki/Latin_Quarter_(nightclub)#Broadway_theatre"
+    )
+
+st.caption(caption_text)

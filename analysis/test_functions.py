@@ -84,7 +84,6 @@ def top_grossing_segmented_bars(df):
     # Convert to hundred-millions for better axis formatting
     show_theatre_gross['Total_Gross_HM'] = show_theatre_gross['Total_Gross'] / 100000000
     show_theatre_gross['Segment_Start_HM'] = show_theatre_gross['Segment_Start'] / 100000000
-    show_theatre_gross['Segment_End_HM'] = (show_theatre_gross['Segment_Start'] + show_theatre_gross['Total_Gross']) / 100000000
     
     # Create a color map for theatres (consistent colors across shows)
     unique_theatres = show_theatre_gross['Theatre'].unique()
@@ -154,47 +153,45 @@ def top_grossing_segmented_bars(df):
 
 
 # 2) Average percentage capacity for each theatre to compare them by success
-# 2.1) Also toggles to a plot of the number of unique shows at each for fun
-def theatre_metric_plot(df, metric='capacity'):
+def theatre_capacity_plot(df):
     """
-    Creates a dot plot showing either average capacity (or number of unique shows) by theatre
+    Create a dot plot showing average percent capacity by theatre with show count in hover
     """
-    # Group by theatre and calculate both metrics
+    # Group by theatre and calculate metrics
     theatre_data = df.groupby('Theatre').agg({
         '% Cap': 'mean',
         'Show': 'nunique'
     }).reset_index()
     
-    # Determine which metric to use
-    if metric == 'capacity':
-        x_metric = '% Cap'
-        x_title = 'Average Capacity (%)'
-        x_format = {'ticksuffix': '%', 'range': [0, 100]}
-        sort_metric = '% Cap'
-        hover_template = '<b>%{y}</b><br>Avg Capacity: <b>%{x:.1f}%</b><br>Unique Shows: %{customdata}<extra></extra>'
-    else:  # show_count
-        x_metric = 'Show'
-        x_title = 'Number of Unique Shows'
-        x_format = {}  # No special formatting for count
-        sort_metric = 'Show'
-        hover_template = '<b>%{y}</b><br>Unique Shows: <b>%{x}</b><br>Avg Capacity: %{customdata:.1f}%<extra></extra>'
+    # Remove Princess theatre if it's a significant outlier. Considering
+    # its renaming & discontinuation, it likely will be an outlier from now on.
+    princess_capacity = theatre_data[theatre_data['Theatre'] == 'Princess Theatre']
+    if not princess_capacity.empty and princess_capacity['% Cap'].iloc[0] > 100:
+        theatre_data = theatre_data[theatre_data['Theatre'] != 'Princess Theatre']
+        princess_removed = True
+    else:
+        princess_removed = False
     
-    # Sort by the selected metric
-    theatre_data = theatre_data.sort_values(sort_metric, ascending=False)
+    # Sort by average capacity in descending order
+    theatre_data = theatre_data.sort_values('% Cap', ascending=False)
     
     # Create scatter plot
     fig = px.scatter(
         theatre_data,
-        x=x_metric,
+        x='% Cap',
         y='Theatre',
-        title=f'Theatre Comparison: {x_title}',
+        title='Average Capacity Utilization by Theatre',
         labels={
-            x_metric: x_title,
+            '% Cap': 'Average Capacity (%)',
             'Theatre': 'Theatre Name'
         }
     )
     
-    # Apply consistent layout to the above chart
+    # Calculate dynamic x-axis range (cap at 100% unless there are values above)
+    x_max = max(theatre_data['% Cap'].max(), 100)
+    x_range = [0, x_max * 1.05]  # 5% padding
+    
+    # Apply consistent layout
     fig.update_layout(
         plot_bgcolor='white',
         paper_bgcolor='white',
@@ -202,7 +199,7 @@ def theatre_metric_plot(df, metric='capacity'):
         margin=dict(l=200, r=50, t=80, b=50),
         
         title={
-            'text': f'Theatre Comparison: {x_title}',
+            'text': 'Average Capacity Utilization by Theatre',
             'x': 0.5,
             'xanchor': 'center',
             'font': {'size': 20}
@@ -216,17 +213,12 @@ def theatre_metric_plot(df, metric='capacity'):
         },
         
         xaxis={
+            'ticksuffix': '%',
+            'range': x_range,  # Dynamic range
             'tickfont': {'size': 11},
-            'title': {'text': x_title, 'font': {'size': 14}},
-            **x_format  # Apply the format (suffix, range, etc.)
+            'title': {'text': 'Average Capacity (%)', 'font': {'size': 14}}
         }
     )
-    
-    # Set custom data for hover based on which metric isn't the primary one
-    if metric == 'capacity':
-        custom_data = theatre_data['Show']  # Show count in hover
-    else:
-        custom_data = theatre_data['% Cap']  # Capacity in hover
     
     # Enhanced marker styling
     fig.update_traces(
@@ -235,8 +227,12 @@ def theatre_metric_plot(df, metric='capacity'):
             color='#1f77b4',  # Consistent blue
             line=dict(width=1, color='darkblue')
         ),
-        hovertemplate=hover_template,
-        customdata=custom_data
+        hovertemplate=(
+            '<b>%{y}</b><br>'
+            'Average Capacity: <b>%{x:.1f}%</b><br>'
+            'Number of Shows: %{customdata}<extra></extra>'
+        ),
+        customdata=theatre_data['Show']  # Show count in hover
     )
     
-    return fig
+    return fig, princess_removed
