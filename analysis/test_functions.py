@@ -314,77 +314,75 @@ def display_regression_summary(model):
     """
     Display regression summary in a format similar to R's summary(lm())
     """
-    st.subheader("Linear Regression Summary")
-    
-    # Coefficients table (like R's Coefficients section)
-    st.write("**Coefficients:**")
-    coef_df = pd.DataFrame({
-        'Estimate': model.params,
-        'Std. Error': model.bse,
-        't value': model.tvalues,
-        'Pr(>|t|)': model.pvalues
-    })
-    
-    # Format p-values with stars like R does
-    def format_pvalue(p):
-        if p < 0.001:
-            return f"{p:.4f} ***"
-        elif p < 0.01:
-            return f"{p:.4f} **"
-        elif p < 0.05:
-            return f"{p:.4f} *"
-        elif p < 0.1:
-            return f"{p:.4f} ."
-        else:
-            return f"{p:.4f}"
-    
-    coef_df['Pr(>|t|)'] = coef_df['Pr(>|t|)'].apply(format_pvalue)
-    st.dataframe(coef_df.style.format({
-        'Estimate': '{:.2f}',
-        'Std. Error': '{:.2f}',
-        't value': '{:.2f}'
-    }))
-    
-    st.caption("Significance codes: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.1")
-    
-    # Model statistics (like R's bottom section)
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric("R-squared", f"{model.rsquared:.4f}")
-    
-    with col2:
-        st.metric("Adj. R-squared", f"{model.rsquared_adj:.4f}")
-    
-    with col3:
-        st.metric("F-statistic", f"{model.fvalue:.2f}")
-    
-    with col4:
-        st.metric("P-value (F)", f"{model.f_pvalue:.4f}")
-    
-    # Additional statistics
-    st.write("**Model Statistics:**")
-    stats_df = pd.DataFrame({
-        'Statistic': ['Observations', 'Df Residuals', 'Df Model'],
-        'Value': [model.nobs, model.df_resid, model.df_model]
-    })
-    st.dataframe(stats_df, hide_index=True)
-    
-    # # Diagnostic information - potentially interesting, but feels more
-    #                            like clutter than anything else
-    # st.write("**Residual Statistics:**")
-    # residuals = model.resid
-    # resid_df = pd.DataFrame({
-    #     'Statistic': ['Min', '1Q', 'Median', '3Q', 'Max'],
-    #     'Value': [
-    #         residuals.min(),
-    #         np.percentile(residuals, 25),
-    #         np.median(residuals),
-    #         np.percentile(residuals, 75),
-    #         residuals.max()
-    #     ]
-    # })
-    # st.dataframe(resid_df.style.format({'Value': '{:.2f}'}), hide_index=True)
+    with st.expander("Linear Regression Summary", expanded=False):
+        # Coefficients table (like R's Coefficients section)
+        st.write("**Coefficients:**")
+        coef_df = pd.DataFrame({
+            'Estimate': model.params,
+            'Std. Error': model.bse,
+            't value': model.tvalues,
+            'Pr(>|t|)': model.pvalues
+        })
+        
+        # Format p-values with stars like R does
+        def format_pvalue(p):
+            if p < 0.001:
+                return f"{p:.4f} ***"
+            elif p < 0.01:
+                return f"{p:.4f} **"
+            elif p < 0.05:
+                return f"{p:.4f} *"
+            elif p < 0.1:
+                return f"{p:.4f} ."
+            else:
+                return f"{p:.4f}"
+        
+        coef_df['Pr(>|t|)'] = coef_df['Pr(>|t|)'].apply(format_pvalue)
+        st.dataframe(coef_df.style.format({
+            'Estimate': '{:.2f}',
+            'Std. Error': '{:.2f}',
+            't value': '{:.2f}'
+        }))
+        
+        st.caption("Significance codes: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.1")
+        
+        # Model statistics (like R's bottom section)
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("R-squared", f"{model.rsquared:.4f}")
+        
+        with col2:
+            st.metric("Adj. R-squared", f"{model.rsquared_adj:.4f}")
+        
+        with col3:
+            st.metric("F-statistic", f"{model.fvalue:.2f}")
+        
+        with col4:
+            st.metric("P-value (F)", f"{model.f_pvalue:.4f}")
+        
+        # Additional statistics
+        st.write("**Model Statistics:**")
+        stats_df = pd.DataFrame({
+            'Statistic': ['Observations', 'Df Residuals', 'Df Model'],
+            'Value': [model.nobs, model.df_resid, model.df_model]
+        })
+        st.dataframe(stats_df, hide_index=True)
+        
+        # Diagnostic information
+        st.write("**Residual Statistics:**")
+        residuals = model.resid
+        resid_df = pd.DataFrame({
+            'Statistic': ['Min', '1Q', 'Median', '3Q', 'Max'],
+            'Value': [
+                residuals.min(),
+                np.percentile(residuals, 25),
+                np.median(residuals),
+                np.percentile(residuals, 75),
+                residuals.max()
+            ]
+        })
+        st.dataframe(resid_df.style.format({'Value': '{:.2f}'}), hide_index=True)
 
 # 4) Faceted plot by show type, with linear fits presented.
 # - I didn't need as much statistical rigor here, so I decided
