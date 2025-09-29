@@ -280,7 +280,7 @@ def gross_vs_attendance_regression_plot(df):
         x=x_range,
         y=y_pred,
         mode='lines',
-        line=dict(color='red', width=3),
+        line=dict(color='rgba(178, 34, 34, 1)', width=3),
         name='Linear Regression Fit'
     ))
     
@@ -409,7 +409,7 @@ def gross_vs_attendance_by_show_type(df):
             'Attend': 'Attendance',
             'Grosses ($)': 'Gross ($)'
         },
-        opacity=0.3
+        opacity=0.25
     )
     
     # Store regression statistics for each show type to be displayed on the page
@@ -445,7 +445,7 @@ def gross_vs_attendance_by_show_type(df):
             fig.add_trace(go.Scatter(
                 x=x_range, y=y_pred_range, 
                 mode='lines', 
-                line=dict(color='red', width=2),
+                line=dict(color='rgba(178, 34, 34, 1)', width=2),
                 showlegend=False,
                 name=f'Trendline'
             ), row=1, col=i)  # Use i directly instead of index lookup
@@ -548,7 +548,7 @@ def combined_gross_attendance_timeseries(df):
         y=weekly_totals['Grosses ($)'],
         mode='lines',
         name='Total Gross',
-        line=dict(color='rgba(70, 130, 180, 0.8)', width=2),
+        line=dict(color='rgba(30, 144, 255, 0.85)', width=2),
         yaxis='y1'  # Primary y-axis
     ))
     
@@ -558,7 +558,7 @@ def combined_gross_attendance_timeseries(df):
         y=weekly_totals['Attend'],
         mode='lines',
         name='Total Attendance',
-        line=dict(color='rgba(205, 92, 92, 0.8)', width=2),
+        line=dict(color='rgba(178, 34, 34, 0.85)', width=2),
         yaxis='y2'  # Secondary y-axis
     ))
     
@@ -578,15 +578,15 @@ def combined_gross_attendance_timeseries(df):
         ),
         yaxis=dict(
             title='Total Gross ($ Millions)',
-            titlefont=dict(color='rgba(70, 130, 180, 1)'),
-            tickfont=dict(color='rgba(70, 130, 180, 1)'),
+            titlefont=dict(color='rgba(30, 144, 255, 1)'),
+            tickfont=dict(color='rgba(30, 144, 255, 1)'),
             tickformat='$,.0f',
             side='left'
         ),
         yaxis2=dict(
             title='Total Attendance (Thousands)',
-            titlefont=dict(color='rgba(205, 92, 92, 1)'),
-            tickfont=dict(color='rgba(205, 92, 92, 1)'),
+            titlefont=dict(color='rgba(178, 34, 34, 1)'),
+            tickfont=dict(color='rgba(178, 34, 34, 1)'),
             tickformat=',.0f',
             overlaying='y',
             side='right'
