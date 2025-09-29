@@ -268,7 +268,7 @@ def gross_vs_attendance_regression_plot(df):
             'Attend': 'Attendance',
             'Grosses ($)': 'Gross ($)'
         },
-        opacity=0.28 # tweaked just so the red line is a little more visible
+        opacity=0.25 # tweaked just so the red line is a little more visible
     )
     
     # ... and add regression line using the model parameters
@@ -467,7 +467,7 @@ def gross_vs_attendance_by_show_type(df):
     
     # Update axes
     fig.update_yaxes(tickformat='$,.0f')
-    fig.update_traces(marker=dict(size=3, color='blue'))
+    fig.update_traces(marker=dict(size=3, color='rgba(70, 130, 180, 1)'))
     
     return fig, regression_stats
 
@@ -548,7 +548,7 @@ def combined_gross_attendance_timeseries(df):
         y=weekly_totals['Grosses ($)'],
         mode='lines',
         name='Total Gross',
-        line=dict(color='blue', width=2),
+        line=dict(color='rgba(70, 130, 180, 0.8)', width=2),
         yaxis='y1'  # Primary y-axis
     ))
     
@@ -558,7 +558,7 @@ def combined_gross_attendance_timeseries(df):
         y=weekly_totals['Attend'],
         mode='lines',
         name='Total Attendance',
-        line=dict(color='red', width=2),
+        line=dict(color='rgba(205, 92, 92, 0.8)', width=2),
         yaxis='y2'  # Secondary y-axis
     ))
     
@@ -578,15 +578,15 @@ def combined_gross_attendance_timeseries(df):
         ),
         yaxis=dict(
             title='Total Gross ($ Millions)',
-            titlefont=dict(color='blue'),
-            tickfont=dict(color='blue'),
+            titlefont=dict(color='rgba(70, 130, 180, 1)'),
+            tickfont=dict(color='rgba(70, 130, 180, 1)'),
             tickformat='$,.0f',
             side='left'
         ),
         yaxis2=dict(
             title='Total Attendance (Thousands)',
-            titlefont=dict(color='red'),
-            tickfont=dict(color='red'),
+            titlefont=dict(color='rgba(205, 92, 92, 1)'),
+            tickfont=dict(color='rgba(205, 92, 92, 1)'),
             tickformat=',.0f',
             overlaying='y',
             side='right'

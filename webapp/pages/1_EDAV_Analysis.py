@@ -132,6 +132,5 @@ fig_combined = combined_gross_attendance_timeseries(df)
 st.plotly_chart(fig_combined, use_container_width=True)
 
 st.caption(
-    "This chart shows the overall Broadway industry performance over time. "
-    "Gross revenue and attendance typically move together, reflecting overall demand."
+    "Note: the grosses are not adjusted for inflation."
 )

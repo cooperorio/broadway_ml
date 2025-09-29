@@ -162,6 +162,10 @@ def main():
                 fig.update_layout(height=500)
                 st.plotly_chart(fig, use_container_width=True)
                 
+                st.caption(
+                    "Note: the grosses are not adjusted for inflation."
+                )
+
                 # Performance summary (adapts to available columns)
                 st.subheader("Show Performance Summary")
                 
