@@ -227,7 +227,7 @@ def theatre_capacity_plot(df):
     fig.update_traces(
         marker=dict(
             size=8,
-            color='#1f77b4',  # Consistent blue
+            color='rgba(30, 144, 255, 0.7)',  # dodgerblue dots
             line=dict(width=1, color='darkblue')
         ),
         hovertemplate=(
@@ -300,6 +300,14 @@ def gross_vs_attendance_regression_plot(df):
         title_x=0.5,
         title_font_size=20,
         yaxis_tickformat='$,.0f'
+    )
+
+    fig.update_traces(
+        marker=dict(
+            size=4, 
+            color='rgba(30, 144, 255, 0.6)' 
+        ),
+        selector=dict(mode='markers')
     )
 
     # Separate axis updates (cleaner approach)
@@ -467,7 +475,13 @@ def gross_vs_attendance_by_show_type(df):
     
     # Update axes
     fig.update_yaxes(tickformat='$,.0f')
-    fig.update_traces(marker=dict(size=3, color='rgba(70, 130, 180, 1)'))
+    fig.update_traces(
+        marker=dict(
+            size=3, 
+            color='rgba(30, 144, 255, 0.6)'
+        ),
+        selector=dict(mode='markers')
+    )
     
     return fig, regression_stats
 
