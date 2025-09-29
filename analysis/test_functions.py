@@ -679,7 +679,6 @@ def create_show_type_timeseries(df, metric='gross'):
         paper_bgcolor='white',
         height=800,  # Taller to accommodate multiple facets
         margin=dict(l=50, r=50, t=80, b=50),
-        
         title={
             'text': title,
             'x': 0.5,
@@ -702,6 +701,11 @@ def create_show_type_timeseries(df, metric='gross'):
         tickformat='%b %Y'  # "Jan 2020" format
     )
     
+    # Remove x-axis titles from all but the bottom subplot
+    n_types = weekly_data['Type'].nunique()
+    for i in range(1, n_types):  # All except the last one (bottom)
+        fig.update_xaxes(title_text='', row=i, col=1)
+
     # Update line colors to be consistent within each metric
     for trace in fig.data:
         trace.line.color = color
@@ -735,7 +739,7 @@ def show_type_timeseries_analysis(df):
     
     # Generate the appropriate plot
     fig = create_show_type_timeseries(df, metric=metric_map[metric_choice])
-    
+
     if fig is not None:
         st.plotly_chart(fig, use_container_width=True)
     
