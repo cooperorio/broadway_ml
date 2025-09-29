@@ -665,7 +665,7 @@ def create_show_type_timeseries(df, metric='gross'):
         x='Week End',
         y=y_col,
         facet_col='Type',
-        facet_col_wrap=2,  # 2 columns for better aspect ratio
+        facet_col_wrap=1,
         title=title,
         labels={
             'Week End': 'Date',
@@ -709,6 +709,8 @@ def create_show_type_timeseries(df, metric='gross'):
     
     return fig
 
+# 6.1) Using a function to display the selected metric to
+#      reduce clutter in the main file
 def show_type_timeseries_analysis(df):
     """
     Display toggleable faceted time series analysis
@@ -736,22 +738,5 @@ def show_type_timeseries_analysis(df):
     
     if fig is not None:
         st.plotly_chart(fig, use_container_width=True)
-        
-        # # Add metric-specific context - probably not necessary: likely will delete
-        # if metric_choice == 'Gross Revenue':
-        #     st.caption(
-        #         "Total weekly gross revenue broken down by show type. "
-        #         "Shows how different types of productions contribute to overall Broadway revenue over time."
-        #     )
-        # elif metric_choice == 'Ticket Prices':
-        #     st.caption(
-        #         "Average ticket prices calculated as gross revenue divided by attendance. "
-        #         "Shows pricing trends and strategies for different show types over time."
-        #     )
-        # else:  # Capacity
-        #     st.caption(
-        #         "Average capacity percentage shows how effectively different types of shows fill their venues over time. "
-        #         "Higher percentages indicate better seat utilization."
-        #     )
     
     return fig is not None
