@@ -197,11 +197,6 @@ def theatre_capacity_plot(df):
     
     # Apply consistent layout
     fig.update_layout(
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        height=max(800, len(theatre_data) * 18),
-        margin=dict(l=200, r=50, t=80, b=50),
-        
         title={
             'text': 'Average Capacity Utilization by Theatre',
             'x': 0.5,
@@ -221,7 +216,11 @@ def theatre_capacity_plot(df):
             'range': x_range,  # Dynamic range
             'tickfont': {'size': 11},
             'title': {'text': 'Average Capacity (%)', 'font': {'size': 14}}
-        }
+        },
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        height=max(800, len(theatre_data) * 18),
+        margin=dict(l=200, r=50, t=80, b=50)
     )
     
     # Enhanced marker styling
@@ -287,6 +286,12 @@ def gross_vs_attendance_regression_plot(df):
     
     # Then I apply a consistent layout with my other charts
     fig.update_layout(
+        title={ # fixed to center the title
+            'text': 'Weekly Gross vs Weekly Attendance with Linear Regression',
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20}
+        },
         plot_bgcolor='white',
         paper_bgcolor='white',
         height=600,
@@ -294,13 +299,7 @@ def gross_vs_attendance_regression_plot(df):
         title_text='Weekly Gross vs Weekly Attendance with Linear Regression',
         title_x=0.5,
         title_font_size=20,
-        yaxis_tickformat='$,.0f',
-        title={ # fixed to center the title
-            'text': 'Weekly Gross vs Weekly Attendance with Linear Regression',
-            'x': 0.5,
-            'xanchor': 'center',
-            'font': {'size': 20}
-        }
+        yaxis_tickformat='$,.0f'
     )
 
     # Separate axis updates (cleaner approach)
@@ -453,18 +452,17 @@ def gross_vs_attendance_by_show_type(df):
     
     # FIXED: Proper title centering
     fig.update_layout(
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        height=600,
-        margin=dict(l=50, r=50, t=80, b=50),
-        
         # Correct title centering - used the dictionary format
         title={
             'text': 'Weekly Gross vs Weekly Attendance by Show Type',
             'x': 0.5,
             'xanchor': 'center',
             'font': {'size': 20}
-        }
+        },
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        height=600,
+        margin=dict(l=50, r=50, t=80, b=50)
     )
     
     # Update axes
@@ -526,3 +524,78 @@ def display_faceted_analysis_results(regression_stats):
             "different types of shows. Each subplot represents a different show category. "
             "The red trendlines help visualize the general pattern for each show type."
         )
+
+# 5) Combined chart of grosses & attendance vs time
+def combined_gross_attendance_timeseries(df):
+    """
+    Create a combined time series plot with gross on left axis and attendance on right axis
+    """    
+    # Group by week to get total gross and attendance
+    weekly_totals = df.groupby('Week End').agg({
+        'Grosses ($)': 'sum',
+        'Attend': 'sum'
+    }).reset_index().sort_values('Week End')
+    
+    # Calculate correlation
+    correlation = weekly_totals['Grosses ($)'].corr(weekly_totals['Attend'])
+
+    # Create the figure with secondary y-axis
+    fig = go.Figure()
+    
+    # Add gross line (primary y-axis)
+    fig.add_trace(go.Scatter(
+        x=weekly_totals['Week End'],
+        y=weekly_totals['Grosses ($)'],
+        mode='lines',
+        name='Total Gross',
+        line=dict(color='blue', width=2),
+        yaxis='y1'  # Primary y-axis
+    ))
+    
+    # Add attendance line (secondary y-axis)
+    fig.add_trace(go.Scatter(
+        x=weekly_totals['Week End'],
+        y=weekly_totals['Attend'],
+        mode='lines',
+        name='Total Attendance',
+        line=dict(color='red', width=2),
+        yaxis='y2'  # Secondary y-axis
+    ))
+    
+    # Create layout with dual y-axes
+    fig.update_layout(
+        title={
+            'text': f'Weekly Broadway Gross and Attendance (Correlation: {correlation:.3f})',
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20}
+        },
+        xaxis=dict(
+            title='Date',
+            tickformat='%b %Y',  # Format as "Jan 2020"
+            tickangle=45,
+            tickfont=dict(size=10)
+        ),
+        yaxis=dict(
+            title='Total Gross ($ Millions)',
+            titlefont=dict(color='blue'),
+            tickfont=dict(color='blue'),
+            tickformat='$,.0f',
+            side='left'
+        ),
+        yaxis2=dict(
+            title='Total Attendance (Thousands)',
+            titlefont=dict(color='red'),
+            tickfont=dict(color='red'),
+            tickformat=',.0f',
+            overlaying='y',
+            side='right'
+        ),
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        height=500,
+        margin=dict(l=50, r=50, t=80, b=80),
+        legend=dict(yanchor='top', y=0.99, xanchor='left', x=0.01)
+    )
+    
+    return fig
