@@ -22,6 +22,27 @@ else:
     st.error("Please load data from the main page first")
     st.stop()
 
+st.write(f"""
+Welcome to the 'EDAV' page of my Broadway Data analytics project!
+         
+'EDAV' in this case stands for 'Exploratory Data Analysis & Visualization', and as you might expect
+with such a title, this is the section where I do some more nuanced visualizations of the data iself
+compared to just what we can see from the dashboard. Additionally, you will find here some cursory
+statistical analysis when relevant for exploring the data more generally.
+         
+That being said, this is not the only reason why this page is named as it is. The visualizations and
+explanations found on this page primarily consist of work that is analogous to the work I and my project
+partner, Aylmer Liang, completed for our EDAV course's final project. That project was primarily written
+in R, so this took some translation to get where it is now. Additionally, many of the charts were either
+combined, left out, or strongly altered for the sake of reducing redundancy and making for a more 
+streamlined viewing experience.
+         
+If you are curious to see the original work done for this course (done on a more limited dataset),
+visit the following link: https://aylmergit.github.io/Broadway/
+         
+Now on to the visualizations!!
+""")
+
 # 1) Show all-time top grossing chart
 fig = top_grossing_segmented_bars(df)
 st.plotly_chart(fig, use_container_width=True)

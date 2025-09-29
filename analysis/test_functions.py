@@ -703,7 +703,7 @@ def create_show_type_timeseries(df, metric='gross'):
     
     # Remove x-axis titles from all but the bottom subplot
     n_types = weekly_data['Type'].nunique()
-    for i in range(1, n_types):  # All except the last one (bottom)
+    for i in range(2, n_types + 1):  # All except the last one (bottom)
         fig.update_xaxes(title_text='', row=i, col=1)
 
     # Update line colors to be consistent within each metric
