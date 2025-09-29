@@ -4,7 +4,7 @@ import pandas as pd
 from analysis.test_functions import top_grossing_segmented_bars, theatre_capacity_plot
 from analysis.test_functions import gross_vs_attendance_regression_plot, display_regression_summary
 from analysis.test_functions import gross_vs_attendance_by_show_type, display_faceted_analysis_results
-from analysis.test_functions import combined_gross_attendance_timeseries
+from analysis.test_functions import combined_gross_attendance_timeseries, create_show_type_timeseries
 
 st.set_page_config(
     page_title="EDAV Broadway Analysis",
@@ -134,3 +134,6 @@ st.plotly_chart(fig_combined, use_container_width=True)
 st.caption(
     "Note: the grosses are not adjusted for inflation."
 )
+
+# 6) Time series for several metrics, faceted by show type:
+create_show_type_timeseries(df)

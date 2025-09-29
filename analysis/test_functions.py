@@ -613,3 +613,145 @@ def combined_gross_attendance_timeseries(df):
     )
     
     return fig
+
+#6) Various time series for different metrics, faceted on show type
+def create_show_type_timeseries(df, metric='gross'):
+    """
+    Create faceted time series plots by show type for different metrics
+    """    
+    # Group by week and show type
+    if metric == 'gross':
+        # Total gross by week and show type
+        weekly_data = df.groupby(['Week End', 'Type']).agg({
+            'Grosses ($)': 'sum'
+        }).reset_index()
+        y_col = 'Grosses ($)'
+        title = 'Total Weekly Gross by Show Type'
+        y_title = 'Total Gross ($ Millions)'
+        color = 'rgba(30, 144, 255, 0.85)'  # dodgerblue
+        tickformat = '$,.0f'
+        
+    elif metric == 'ticket_price':
+        # Calculate average ticket price (gross / attendance)
+        df_temp = df.copy()
+        df_temp['Ticket_Price'] = df_temp['Grosses ($)'] / df_temp['Attend']
+        weekly_data = df_temp.groupby(['Week End', 'Type']).agg({
+            'Ticket_Price': 'mean'
+        }).reset_index()
+        y_col = 'Ticket_Price'
+        title = 'Average Ticket Price by Show Type'
+        y_title = 'Average Ticket Price ($)'
+        color = 'rgba(34, 139, 34, 0.85)'  # forestgreen
+        tickformat = '$.2f'
+        
+    elif metric == 'capacity':
+        # Average capacity percentage by week and show type
+        weekly_data = df.groupby(['Week End', 'Type']).agg({
+            '% Cap': 'mean'
+        }).reset_index()
+        y_col = '% Cap'
+        title = 'Average Capacity by Show Type'
+        y_title = 'Average Capacity (%)'
+        color = 'rgba(148, 0, 211, 0.85)'  # darkviolet
+        tickformat = '.1f%'
+    
+    else: # mostly for debugging, since I am the one who constructed the dataset.
+        st.error("Invalid metric selected")
+        return None
+    
+    # Create faceted line plot
+    fig = px.line(
+        weekly_data,
+        x='Week End',
+        y=y_col,
+        facet_col='Type',
+        facet_col_wrap=2,  # 2 columns for better aspect ratio
+        title=title,
+        labels={
+            'Week End': 'Date',
+            y_col: y_title
+        }
+    )
+    
+    # Apply consistent styling
+    fig.update_layout(
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        height=800,  # Taller to accommodate multiple facets
+        margin=dict(l=50, r=50, t=80, b=50),
+        
+        title={
+            'text': title,
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20}
+        }
+    )
+    
+    # Update all y-axes with metric-specific formatting
+    fig.update_yaxes(
+        tickfont={'size': 10},
+        title_text=y_title,
+        tickformat=tickformat
+    )
+    
+    # Update all x-axes
+    fig.update_xaxes(
+        tickfont={'size': 10},
+        title_text='Date',
+        tickformat='%b %Y'  # "Jan 2020" format
+    )
+    
+    # Update line colors to be consistent within each metric
+    for trace in fig.data:
+        trace.line.color = color
+        trace.line.width = 2
+    
+    return fig
+
+def show_type_timeseries_analysis(df):
+    """
+    Display toggleable faceted time series analysis
+    """
+    st.header("Show Type Trends Over Time")
+    
+    # Metric selector
+    metric_choice = st.radio(
+        "Select metric to view:",
+        options=['Gross Revenue', 'Ticket Prices', 'Capacity'],
+        index=0,
+        horizontal=True,
+        key="show_type_timeseries_metric"
+    )
+    
+    # Map display names to function parameters
+    metric_map = {
+        'Gross Revenue': 'gross',
+        'Ticket Prices': 'ticket_price', 
+        'Capacity': 'capacity'
+    }
+    
+    # Generate the appropriate plot
+    fig = create_show_type_timeseries(df, metric=metric_map[metric_choice])
+    
+    if fig is not None:
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # # Add metric-specific context - probably not necessary: likely will delete
+        # if metric_choice == 'Gross Revenue':
+        #     st.caption(
+        #         "Total weekly gross revenue broken down by show type. "
+        #         "Shows how different types of productions contribute to overall Broadway revenue over time."
+        #     )
+        # elif metric_choice == 'Ticket Prices':
+        #     st.caption(
+        #         "Average ticket prices calculated as gross revenue divided by attendance. "
+        #         "Shows pricing trends and strategies for different show types over time."
+        #     )
+        # else:  # Capacity
+        #     st.caption(
+        #         "Average capacity percentage shows how effectively different types of shows fill their venues over time. "
+        #         "Higher percentages indicate better seat utilization."
+        #     )
+    
+    return fig is not None
