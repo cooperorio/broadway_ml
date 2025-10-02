@@ -719,8 +719,6 @@ def show_type_timeseries_analysis(df):
     """
     Display toggleable faceted time series analysis
     """
-    st.header("Show Type Trends Over Time")
-    
     # Metric selector
     metric_choice = st.radio(
         "Select metric to view:",
@@ -744,3 +742,160 @@ def show_type_timeseries_analysis(df):
         st.plotly_chart(fig, use_container_width=True)
     
     return fig is not None
+
+# 7) First look into seasonality: plots metrics by month...
+def monthly_seasonality_analysis(df, metric='attendance'):
+    """
+    Create monthly seasonality charts for different metrics
+    """
+    if 'Week End' not in df.columns:
+        st.error("'Week End' column not found")
+        return None
+    
+    # Extract month and prepare data
+    df_temp = df.copy()
+    df_temp['Month'] = df_temp['Week End'].dt.month
+    df_temp['Month_Name'] = df_temp['Week End'].dt.strftime('%b')
+    
+    # Calculate monthly averages based on selected metric
+    if metric == 'attendance':
+        monthly_data = df_temp.groupby(['Month', 'Month_Name']).agg({
+            'Attend': 'mean'
+        }).reset_index().sort_values('Month')
+        y_col = 'Attend'
+        title = 'Average Attendance by Month'
+        y_title = 'Average Attendance'
+        color = 'rgba(30, 144, 255, 0.7)'  # dodgerblue
+        tickformat = ',.0f'
+        y_range = [7000, 9000]
+        
+    elif metric == 'gross':
+        monthly_data = df_temp.groupby(['Month', 'Month_Name']).agg({
+            'Grosses ($)': 'mean'
+        }).reset_index().sort_values('Month')
+        y_col = 'Grosses ($)'
+        title = 'Average Gross Revenue by Month'
+        y_title = 'Average Gross ($)'
+        color = 'rgba(34, 139, 34, 0.7)'  # forestgreen
+        tickformat = '$,.0f'
+        y_range = None  # Let Plotly auto-scale
+        
+    elif metric == 'capacity':
+        monthly_data = df_temp.groupby(['Month', 'Month_Name']).agg({
+            '% Cap': 'mean'
+        }).reset_index().sort_values('Month')
+        y_col = '% Cap'
+        title = 'Average Capacity by Month'
+        y_title = 'Average Capacity (%)'
+        color = 'rgba(148, 0, 211, 0.7)'  # darkviolet
+        tickformat = '.1f%'
+        y_range = None
+        
+    elif metric == 'ticket_price':
+        # Calculate ticket price
+        df_temp['Ticket_Price'] = df_temp['Grosses ($)'] / df_temp['Attend']
+        monthly_data = df_temp.groupby(['Month', 'Month_Name']).agg({
+            'Ticket_Price': 'mean'
+        }).reset_index().sort_values('Month')
+        y_col = 'Ticket_Price'
+        title = 'Average Ticket Price by Month'
+        y_title = 'Average Ticket Price ($)'
+        color = 'rgba(220, 20, 60, 0.7)'  # crimson
+        tickformat = '$.2f'
+        y_range = None
+    
+    else:
+        st.error("Invalid metric selected")
+        return None
+    
+    # Create the bar chart
+    fig = px.bar(
+        monthly_data,
+        x='Month_Name',
+        y=y_col,
+        title=title,
+        labels={
+            'Month_Name': 'Month',
+            y_col: y_title
+        }
+    )
+    
+    # Apply consistent styling
+    fig.update_layout(
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        height=500,
+        margin=dict(l=50, r=50, t=80, b=50),
+        
+        title={
+            'text': title,
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20}
+        },
+        
+        xaxis={
+            'tickfont': {'size': 11},
+            'title': {'text': 'Month', 'font': {'size': 14}},
+            'type': 'category',
+            'categoryorder': 'array',
+            'categoryarray': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        },
+        
+        yaxis={
+            'tickfont': {'size': 11},
+            'title': {'text': y_title, 'font': {'size': 14}},
+            'tickformat': tickformat,
+            'range': y_range  # Use specified range or auto-scale
+        }
+    )
+    
+    # Customize bars
+    fig.update_traces(
+        marker=dict(
+            color=color,
+            line=dict(width=1, color=color.replace('0.7', '1'))
+        ),
+        hovertemplate=f'<b>%{{x}}</b><br>{y_title}: %{{y:{tickformat}}}<extra></extra>'
+    )
+    
+    return fig
+
+# 7.1 The function that displays it in a toggleable form
+def display_seasonality_analysis(df):
+    """
+    Display toggleable seasonality analysis for different Broadway metrics
+    """
+    # Metric selector
+    metric_choice = st.radio(
+        "Select metric to view:",
+        options=['Attendance', 'Gross Revenue', 'Capacity', 'Ticket Prices'],
+        index=0,
+        horizontal=True,
+        key="seasonality_metric"
+    )
+    
+    # Map display names to function parameters
+    metric_map = {
+        'Attendance': 'attendance',
+        'Gross Revenue': 'gross', 
+        'Capacity': 'capacity',
+        'Ticket Prices': 'ticket_price'
+    }
+    
+    try:
+        # Generate the appropriate plot
+        fig_seasonality = monthly_seasonality_analysis(df, metric=metric_map[metric_choice])
+        
+        if fig_seasonality:
+            st.plotly_chart(fig_seasonality, use_container_width=True)
+            
+            return True
+        else:
+            st.info("Could not create seasonality chart.")
+            return False
+            
+    except Exception as e:
+        st.error(f"Error creating seasonality analysis: {e}")
+        return False

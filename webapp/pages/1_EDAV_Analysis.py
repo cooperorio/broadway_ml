@@ -5,6 +5,7 @@ from analysis.test_functions import top_grossing_segmented_bars, theatre_capacit
 from analysis.test_functions import gross_vs_attendance_regression_plot, display_regression_summary
 from analysis.test_functions import gross_vs_attendance_by_show_type, display_faceted_analysis_results
 from analysis.test_functions import combined_gross_attendance_timeseries, show_type_timeseries_analysis
+from analysis.test_functions import monthly_seasonality_analysis, display_seasonality_analysis
 
 st.set_page_config(
     page_title="EDAV Broadway Analysis",
@@ -32,10 +33,10 @@ statistical analysis when relevant for exploring the data more generally.
          
 That being said, this is not the only reason why this page is named as it is. The visualizations and
 explanations found on this page primarily consist of work that is analogous to the work I and my project
-partner, Aylmer Liang, completed for our EDAV course's final project. That project was primarily written
-in R, so this took some translation to get where it is now. Additionally, many of the charts were either
-combined, left out, or strongly altered for the sake of reducing redundancy and making for a more 
-streamlined viewing experience.
+partner, Aylmer Liang, completed for our EDAV course's final project. That project (which planted the
+seeds of inspiration for this one) was primarily written in R, so this took some translation to get 
+where it is now. Additionally, many of the charts were either combined, left out, or strongly altered 
+for the sake of reducing redundancy and making for a more streamlined viewing experience.
          
 If you are curious to see the original work done for this course (done on a more limited dataset),
 visit the following link: https://aylmergit.github.io/Broadway/
@@ -156,5 +157,10 @@ st.caption(
     "Note: the grosses are not adjusted for inflation."
 )
 
+st.header("Brief & early look at Time Series & Seasonality")
+
 # 6) Time series for several metrics, faceted by show type:
 show_type_timeseries_analysis(df)
+
+# 7) Seasonality for several metrics.
+display_seasonality_analysis(df)
