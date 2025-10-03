@@ -64,7 +64,9 @@ def apply_filters(df):
 
 def main():
     st.title("🎭 Broadway Data Dashboard")
-    st.markdown("Welcome to the Broadway data analysis dashboard! Take a look around and explore historical Broadway performance data with interactive visualizations.")
+    st.markdown("Welcome to my Broadway data analysis dashboard! " \
+    "Take a look around and explore historical Broadway performance " \
+    "data with interactive visualizations on every page.")
     
     # Load data
     df = get_data()
@@ -75,39 +77,6 @@ def main():
     # Apply filters
     df_filtered = apply_filters(df)
     
-    # Key metrics at the top
-    st.subheader("Key Performance Indicators")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        if len(df_filtered) > 0 and 'Show' in df_filtered.columns:
-            total_shows = len(df_filtered['Show'].unique())
-            st.metric("Total Shows", total_shows)
-        else:
-            st.metric("Total Shows", 0)
-
-    with col2:
-        if len(df_filtered) > 0 and 'Grosses ($)' in df_filtered.columns:
-            total_gross = df_filtered['Grosses ($)'].sum()
-            st.metric("Total Gross", f"${total_gross:,.0f}")
-        else:
-            st.metric("Total Gross", "$0")
-
-    with col3:
-        if len(df_filtered) > 0 and 'Attend' in df_filtered.columns:
-            avg_attendance = df_filtered['Attend'].mean()
-            st.metric("Average Attendance", f"{avg_attendance:,.0f}")
-        else:
-            st.metric("Average Attendance", 0)
-
-    with col4:
-        if len(df_filtered) > 0 and '% Cap' in df_filtered.columns:
-            avg_capacity = df_filtered['% Cap'].mean()
-            st.metric("Average Capacity (%)", f"{avg_capacity:.1f}%")
-        else:
-            st.metric("Average Capacity (%)", "0.0%")
-    
-
     st.subheader("Individual Show Performance Over Time")
 
     if len(df_filtered) > 0:
@@ -163,7 +132,9 @@ def main():
                 st.plotly_chart(fig, use_container_width=True)
                 
                 st.caption(
-                    "Note: the grosses are not adjusted for inflation."
+                    "Note: the grosses are not adjusted for inflation." \
+                    "(Also notice the smooth line between spring 2020 and autumn 2021. This" \
+                    "is due to the COVID 19 pandemic shutdown of Broadway theatres.)"
                 )
 
                 # Performance summary (adapts to available columns)

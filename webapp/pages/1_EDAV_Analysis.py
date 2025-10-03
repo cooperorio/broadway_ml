@@ -57,6 +57,38 @@ st.caption(
     "https://en.wikipedia.org/wiki/List_of_Broadway_theaters#Active_Broadway_theaters"
     )
 
+st.write(f"""
+Above you can see the top 40 grossing show runs since the early 1980s. You may notice some names that 
+         are very similar where it seems as though the are present more than once. This is due to 
+         their names changing in the Broadway League's reporting - typically due to either an 
+         extended hiatus, or changes to the script (ex. Harry Potter) that were substantial enough 
+         to warrant that change, despite technically being considered the same production.
+
+Exploring the data itself further, you can see that only 4 shows have broken the billion dollar 
+         mark in show run grosses (at time of writing). Of these 4 shows (The Lion King, 
+         Wicked, The Phantom of the Opera, and Hamilton), only one has concluded its record setting
+         run, that being the longest ever running show on Broadway, The Phantom of the Opera. That
+         being said, the 3 next highest grossing - The Book of Mormon, Chicago, and Aladdin - are 
+         all not too far behind the billion mark; and seeing as they are all still running with no 
+         signs of stopping any time soon, there is a good chance that one (or more) of them may 
+         break that threshold in the somewhat near future.
+
+Also interesting to investigate are the shows which transfered from one theatre to another during
+         their production's run. Especially notable examples of this include The Lion King 
+         transferring several years into its production from the New Amsterdam to the Minskoff, and 
+         the wildly successful revival of Chicago transferring twice, begginging in the Richard
+         Rodgers theatre, moving to the Shubert, and finding its longest home in the Ambassador. 
+         The reasons for these transfers (sadly not included in the data set, but available through
+         some basic sleuthing online - especially Playbill articles) are arguably more interesting 
+         than the data itself, with the show sometimes outgrowing its current theatre, and in many
+         other cases the show being kicked out in place of a new show that was scheduled to come in.
+         
+*** maybe add more here? Like a chunk of info to transition to the next chart ***
+
+
+""")
+
+
 # 2) Plot of the Theatres' grosses for comparison (not directly included
 #    in the EDAV project, but inspired by its questions)
 fig_theatre, princess_removed = theatre_capacity_plot(df)
