@@ -27,7 +27,7 @@ st.write(f"""
 Welcome to the 'EDAV' page of my Broadway Data analytics project!
          
 'EDAV' in this case stands for 'Exploratory Data Analysis & Visualization', and as you might expect
-with such a title, this is the section where I do some more nuanced visualizations of the data iself
+with such a title, this is the section where I do some more nuanced visualizations of the data itself
 compared to just what we can see from the dashboard. Additionally, you will find here some cursory
 statistical analysis when relevant for exploring the data more generally.
          
@@ -50,8 +50,8 @@ st.plotly_chart(fig, use_container_width=True)
 
 # 1.1) Caption for context that theatre names change
 st.caption(
-    "Note: Theatre names are preserved as recorded historically, "
-    "including name changes over time. For information on which theatres"
+    "Note: theatre names are preserved as recorded historically, "
+    "including name changes over time. For information on which theatres "
     "were renamed to which others, and which may no longer be active at all,"
     " see the following wikipedia page: "
     "https://en.wikipedia.org/wiki/List_of_Broadway_theaters#Active_Broadway_theaters"
@@ -73,23 +73,35 @@ Exploring the data itself further, you can see that only 4 shows have broken the
          signs of stopping any time soon, there is a good chance that one (or more) of them may 
          break that threshold in the somewhat near future.
 
-Also interesting to investigate are the shows which transfered from one theatre to another during
+Also interesting to investigate are the shows which transferred from one theatre to another during
          their production's run. Especially notable examples of this include The Lion King 
          transferring several years into its production from the New Amsterdam to the Minskoff, and 
-         the wildly successful revival of Chicago transferring twice, begginging in the Richard
+         the wildly successful revival of Chicago transferring twice, beginning in the Richard
          Rodgers theatre, moving to the Shubert, and finding its longest home in the Ambassador. 
          The reasons for these transfers (sadly not included in the data set, but available through
          some basic sleuthing online - especially Playbill articles) are arguably more interesting 
-         than the data itself, with the show sometimes outgrowing its current theatre, and in many
-         other cases the show being kicked out in place of a new show that was scheduled to come in.
+         than the data itself.
          
-*** maybe add more here? Like a chunk of info to transition to the next chart ***
+         The most common reason for transfers I am aware of is when a new show is already scheduled to
+         occupy the theatre the transferring show is in. When the current show at the time is still
+         performing very well, against initial plans or expectations, it may then move its production
+         to an entirely new theatre and continue on (like in the case of Chicago's first transfer). 
+         This can also be a more planned process, however, like with the Lion King's transfer to 
+         make way for Marry Poppins, where both were produced by the same company. [see links below,  
+         or view their respective wikis for more a little more information on these specific cases]
+
+Links:
+         The Lion King: https://playbill.com/article/circle-of-life-lion-king-reopens-at-the-minskoff-theatre-june-13-com-133141
+         Chicago: https://playbill.com/article/chicago-transfers-to-the-shubert-today-com-329093
 
 
+On the topic of the interplay between theatres and the shows they house, below we have the next 
+         visualization of this page - a chart of the average capacity used for each theatre in 
+         decreasing order:
 """)
 
 
-# 2) Plot of the Theatres' grosses for comparison (not directly included
+# 2) Plot of the Theatres' avg. capacities for comparison (not directly included
 #    in the EDAV project, but inspired by its questions)
 fig_theatre, princess_removed = theatre_capacity_plot(df)
 st.plotly_chart(fig_theatre, use_container_width=True)
@@ -105,6 +117,26 @@ if princess_removed:
         "wikipedia article: "
         "https://en.wikipedia.org/wiki/Latin_Quarter_(nightclub)#Broadway_theatre"
     )
+
+st.write(f"""
+You may notice that some theatres with some eerily similar names show up in this visualization. This
+         is because the Broadway League reports its data with the current naming convention of the 
+         theatre at the time, even if that name changes mid production. This led me to have to make
+         the decision as to whether or not to aggregate the data based on physical location; and as
+         you can see, I decided not to. This decision was motivated by a few factors (which I describe a
+         little bit further below), with one major one being the added layer of unnecessary complexity I
+         believe it would bring
+         
+This plot, like the one before, was also altered from the one present in my original project, no
+         longer showing the grosses for each theatre. I chose to switch over to the average occupied
+         capacity of each of the theatres because I felt it would serve as a better point of comparison
+         given that I wanted to preserve that some of the same theatres are represented under different 
+         names, while also comparing across differently-sized theatres. For example, it shows that the
+         Kit Kat Club ('24-'25; a renaming of the August Wilson Theatre) saw one of the highest average
+         utilized capacities of the theatres I have data on (barring outliers - see caption). This 
+         naming corresponds directly and solely with the 2024 Cabaret at the Kit Kat Club production,
+         adding some insight into the success of that production.
+""")
 
 # 3) Grosses vs. Attendance Linear Plot & Regression
 fig_gross_attend, regression_model = gross_vs_attendance_regression_plot(df)

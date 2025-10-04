@@ -133,7 +133,7 @@ def main():
                 
                 st.caption(
                     "Note: the grosses are not adjusted for inflation." \
-                    "(Also notice the smooth line between spring 2020 and autumn 2021. This" \
+                    "\n (Also notice the smooth line between spring 2020 and autumn 2021. This" \
                     "is due to the COVID 19 pandemic shutdown of Broadway theatres.)"
                 )
 
