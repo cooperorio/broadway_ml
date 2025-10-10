@@ -186,6 +186,17 @@ def main():
                         format_dict['Avg_Capacity'] = '{:.1f}%'
                     
                     st.dataframe(show_stats.style.format(format_dict))
+
+                    st.markdown(
+                        """
+                        <style>
+                        [data-testid="stElementToolbar"] {
+                            display: none;
+                        }
+                        </style>
+                        """,
+                        unsafe_allow_html=True
+                    )
         else:
             st.info("No numeric metrics available for visualization")
     else:
@@ -204,3 +215,36 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# # Archived function because it showed raw data.
+# Recent Data Preview
+#     st.subheader("Recent Data Preview")
+    
+#     col1, col2 = st.columns([3, 1])
+    
+#     with col1:
+#         if len(df_filtered) > 0:
+#             st.table(df_filtered.tail(10))
+#         else:
+#             st.info("No data available with current filters")
+
+#     with col2:
+#         st.write("**Data Summary:**")
+#         st.write(f"**Total Records:** {len(df_filtered):,}")
+        
+#         # Safe date range display
+#         if len(df_filtered) > 0 and 'Week End' in df_filtered.columns:
+#             min_date = df_filtered['Week End'].min()
+#             max_date = df_filtered['Week End'].max()
+#             if not pd.isna(min_date) and not pd.isna(max_date):
+#                 st.write(f"**Date Range:** {min_date.strftime('%Y-%m-%d')} to {max_date.strftime('%Y-%m-%d')}")
+#             else:
+#                 st.write("**Date Range:** Invalid dates")
+#         else:
+#             st.write("**Date Range:** No data available")
+        
+#         # Safe theatre count
+#         if len(df_filtered) > 0 and 'Theatre' in df_filtered.columns:
+#             st.write(f"**Theatres:** {df_filtered['Theatre'].nunique()}")
+#         else:
+#             st.write("**Theatres:** 0")
