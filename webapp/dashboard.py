@@ -132,9 +132,12 @@ def main():
                 st.plotly_chart(fig, use_container_width=True)
                 
                 st.caption(
-                    "Note: the grosses are not adjusted for inflation." \
+                    "Note: the grosses are not adjusted for inflation. Additionally, from the " \
+                    "Broadway League's website: 'Beginning with week ending 5/31/09, \"Gross\" " \
+                    "represents Gross Gross and \"Attendance\" represents Total Attendance. For every " \
+                    "week prior, these numbers represent Net Gross and Paid Attendance respectively.'"
                     "\n (Also notice the smooth line between spring 2020 and autumn 2021. This" \
-                    "is due to the COVID 19 pandemic shutdown of Broadway theatres.)"
+                    " is due to the COVID 19 pandemic shutdown of Broadway theatres.)"
                 )
 
                 # Performance summary (adapts to available columns)
@@ -187,39 +190,6 @@ def main():
             st.info("No numeric metrics available for visualization")
     else:
         st.info("No data available for visualization with current filters")
-    
-
-    # Recent Data Preview
-    st.subheader("Recent Data Preview")
-    
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        if len(df_filtered) > 0:
-            st.dataframe(df_filtered.tail(10), use_container_width=True)
-        else:
-            st.info("No data available with current filters")
-
-    with col2:
-        st.write("**Data Summary:**")
-        st.write(f"**Total Records:** {len(df_filtered):,}")
-        
-        # Safe date range display
-        if len(df_filtered) > 0 and 'Week End' in df_filtered.columns:
-            min_date = df_filtered['Week End'].min()
-            max_date = df_filtered['Week End'].max()
-            if not pd.isna(min_date) and not pd.isna(max_date):
-                st.write(f"**Date Range:** {min_date.strftime('%Y-%m-%d')} to {max_date.strftime('%Y-%m-%d')}")
-            else:
-                st.write("**Date Range:** Invalid dates")
-        else:
-            st.write("**Date Range:** No data available")
-        
-        # Safe theatre count
-        if len(df_filtered) > 0 and 'Theatre' in df_filtered.columns:
-            st.write(f"**Theatres:** {df_filtered['Theatre'].nunique()}")
-        else:
-            st.write("**Theatres:** 0")
     
     # Call to action for other pages
     st.markdown("---")
