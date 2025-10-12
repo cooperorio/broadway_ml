@@ -14,3 +14,4 @@ Thumbs.db
 
 # the data itself
 database/
+*.csv
