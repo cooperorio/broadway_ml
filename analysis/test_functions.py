@@ -767,7 +767,7 @@ def monthly_seasonality_analysis(df, metric='attendance'):
         y_title = 'Average Attendance'
         color = 'rgba(30, 144, 255, 0.7)'  # dodgerblue
         tickformat = ',.0f'
-        y_range = [7000, 9000]
+        y_range = None # [7000, 9000]
         
     elif metric == 'gross':
         monthly_data = df_temp.groupby(['Month', 'Month_Name']).agg({

@@ -303,16 +303,31 @@ The third chart with the percent capacities seems to show that musicals tend to 
 
 Finally, we have the chart plotting the seasonality of several facets of the data in aggregate, both for
          interest, and for a last bit of confirmation that time series analysis in later parts of this
-         project should be a special focus, rather than just traditional Machine Learning (which will
+         project should be a special focus, rather than solely traditional Machine Learning (which will
          still be explored regardless):
 """)
 
 # 7) Seasonality for several metrics.
 display_seasonality_analysis(df)
 
-### Note to self - the legends for the first of these visualisations (the part on attendance) 
-### are not consistent, and need to be altered.
-
 st.write(f"""
+In these monthly plots, we see that the seasonality, while subtle at times, is certainly present, and 
+         seems to follow fairly conventional wisdom. Firstly, we see that attendance peaks in July and
+         August, which follows with the summer being a generally good time of year for NYC when it comes
+         to tourism. Interestingly, however, we see that the average grosses of Broadway as a whole tends
+         to peak during December, with the summer months trailing just behind it (albeit only slightly). 
+         We can deduce the likely culprit of this discrepancy using the other plots. 
 
+The plot of the percent capacity occupied on average more-or-less follows the plot of attendance, showing
+         that it isn't like some theatres close during December increasing scarsity in the market or 
+         anything. Rather, the plot of average ticket prices shows us that the bump in grosses is due 
+         to a jump in ticket prices around December (and to a lesser extend, January). This tracks with
+         the increase in tourism that NYC also tends to get during the Holidays; but more importantly, I 
+         think, is that it is likely a symptem of tickets being bought as gifts for the holidays, allowing
+         the consumers to justify higher prices at the time.
+
+Thus concludes the EDAV portion of this project. I hope you enjoyed delving into my thought process, and 
+         that you found my visualizations interesting and informative. Feel free to check out my other
+         pages for more exploration of this data, or to return to the dashboard and take a look a the
+         straightforward trends for different shows. Thanks for visiting!
 """)
